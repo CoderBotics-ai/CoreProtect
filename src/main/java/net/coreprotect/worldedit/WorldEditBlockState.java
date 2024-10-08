@@ -12,7 +12,6 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.material.MaterialData;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 
@@ -23,25 +22,24 @@ public final class WorldEditBlockState implements BlockState {
     protected BlockData blockData;
 
     public WorldEditBlockState(Location loc) {
-        location = loc;
+        this.location = loc;
     }
 
     public WorldEditBlockState(Location loc, Material type, BlockData data) {
-        location = loc;
-        material = type;
-        blockData = data;
+        this.location = loc;
+        this.material = type;
+        this.blockData = data;
     }
 
     @Override
     public void setMetadata(String metadataKey, MetadataValue newMetadataValue) {
         // TODO Auto-generated method stub
-
     }
 
     @Override
     public List<MetadataValue> getMetadata(String metadataKey) {
         // TODO Auto-generated method stub
-        return null;
+        return List.of(); // Updated to return an empty list instead of null
     }
 
     @Override
@@ -53,17 +51,10 @@ public final class WorldEditBlockState implements BlockState {
     @Override
     public void removeMetadata(String metadataKey, Plugin owningPlugin) {
         // TODO Auto-generated method stub
-
     }
 
     @Override
     public Block getBlock() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public MaterialData getData() {
         // TODO Auto-generated method stub
         return null;
     }
@@ -119,7 +110,6 @@ public final class WorldEditBlockState implements BlockState {
             loc.setYaw(location.getYaw());
             loc.setPitch(location.getPitch());
         }
-
         return loc;
     }
 
@@ -130,19 +120,13 @@ public final class WorldEditBlockState implements BlockState {
     }
 
     @Override
-    public void setData(MaterialData data) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
     public void setBlockData(BlockData data) {
-        blockData = data;
+        this.blockData = data;
     }
 
     @Override
     public void setType(Material type) {
-        material = type;
+        this.material = type;
     }
 
     @Override
@@ -172,7 +156,6 @@ public final class WorldEditBlockState implements BlockState {
     @Override
     public void setRawData(byte data) {
         // TODO Auto-generated method stub
-
     }
 
     @Override
@@ -190,19 +173,19 @@ public final class WorldEditBlockState implements BlockState {
     @Override
     public Collection<ItemStack> getDrops() {
         // TODO Auto-generated method stub
-        return null;
+        return List.of(); // Updated to return an empty list instead of null
     }
 
     @Override
     public Collection<ItemStack> getDrops(ItemStack tool) {
         // TODO Auto-generated method stub
-        return null;
+        return List.of(); // Updated to return an empty list instead of null
     }
 
     @Override
     public Collection<ItemStack> getDrops(ItemStack tool, Entity entity) {
         // TODO Auto-generated method stub
-        return null;
+        return List.of(); // Updated to return an empty list instead of null
     }
 
     @Override
@@ -216,5 +199,4 @@ public final class WorldEditBlockState implements BlockState {
         // TODO Auto-generated method stub
         return null;
     }
-
 }

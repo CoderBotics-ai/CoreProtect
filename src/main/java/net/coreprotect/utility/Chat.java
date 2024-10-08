@@ -44,12 +44,10 @@ public final class Chat {
     }
 
     public static void console(String string) {
-        if (string.startsWith("-") || string.startsWith("[")) {
-            Bukkit.getLogger().log(Level.INFO, string);
-        }
-        else {
-            Bukkit.getLogger().log(Level.INFO, "[CoreProtect] " + string);
-        }
+        String logMessage = string.startsWith("-") || string.startsWith("[") 
+            ? string 
+            : "[CoreProtect] " + string;
+        Bukkit.getLogger().log(Level.INFO, logMessage);
     }
 
     public static void sendGlobalMessage(CommandSender user, String string) {
@@ -65,11 +63,8 @@ public final class Chat {
                 sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + string);
             }
         }
-        if (user instanceof Player) {
-            if (((Player) user).isOnline()) {
-                sendMessage(user, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + string);
-            }
+        if (user instanceof Player player && player.isOnline()) {
+            sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + string);
         }
     }
-
 }

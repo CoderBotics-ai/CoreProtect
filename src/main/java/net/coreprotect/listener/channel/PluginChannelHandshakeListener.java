@@ -25,7 +25,7 @@ import net.coreprotect.utility.Chat;
 public class PluginChannelHandshakeListener implements PluginMessageListener, Listener {
 
     public static final String pluginChannel = "coreprotect:handshake";
-    private final int networkingProtocolVersion = 1;
+    private static final int networkingProtocolVersion = 1; // Changed to static final for clarity
     private final Set<UUID> pluginChannelPlayers;
     private static PluginChannelHandshakeListener instance;
 
@@ -39,43 +39,35 @@ public class PluginChannelHandshakeListener implements PluginMessageListener, Li
     }
 
     public Set<UUID> getPluginChannelPlayers() {
-        return pluginChannelPlayers;
+        return new HashSet<>(pluginChannelPlayers); // Return a copy for safety
     }
 
     public boolean isPluginChannelPlayer(CommandSender commandSender) {
-        if (!(commandSender instanceof Player)) {
-            return false;
-        }
-
-        return getPluginChannelPlayers().contains(((Player) commandSender).getUniqueId());
+        return commandSender instanceof Player player && getPluginChannelPlayers().contains(player.getUniqueId());
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        getPluginChannelPlayers().remove(event.getPlayer().getUniqueId());
+        pluginChannelPlayers.remove(event.getPlayer().getUniqueId());
     }
 
     @Override
-    public void onPluginMessageReceived(String s, Player player, byte[] bytes) {
-        handleHandshake(s, player, bytes);
+    public void onPluginMessageReceived(String channel, Player player, byte[] bytes) {
+        handleHandshake(channel, player, bytes);
     }
 
     private void handleHandshake(String channel, Player player, byte[] bytes) {
-        if (!player.hasPermission("coreprotect.networking")) {
+        if (!player.hasPermission("coreprotect.networking") || !channel.equals(pluginChannel)) {
             return;
         }
 
-        if (!channel.equals(pluginChannel)) {
-            return;
-        }
+        try (ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+             DataInputStream dis = new DataInputStream(in)) {
 
-        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-        DataInputStream dis = new DataInputStream(in);
-
-        try {
             String modVersion = dis.readUTF();
             String modId = dis.readUTF();
             int protocolVersion = dis.readInt();
+
             if (Config.getGlobal().NETWORK_DEBUG) {
                 Chat.console(new String(bytes));
                 Chat.console(modVersion);
@@ -88,22 +80,21 @@ public class PluginChannelHandshakeListener implements PluginMessageListener, Li
                 return;
             }
 
-            getPluginChannelPlayers().add(player.getUniqueId());
+            pluginChannelPlayers.add(player.getUniqueId());
             Chat.console(Phrase.build(Phrase.NETWORK_CONNECTION, player.getName(), modId, modVersion, Selector.FIRST));
 
             player.sendPluginMessage(CoreProtect.getInstance(), pluginChannel, sendRegistered());
-        }
-        catch (Exception exception) {
+        } catch (IOException exception) {
             Chat.console(exception.toString());
             exception.printStackTrace();
         }
     }
 
     private byte[] sendRegistered() throws IOException {
-        ByteArrayOutputStream msgBytes = new ByteArrayOutputStream();
-        DataOutputStream msgOut = new DataOutputStream(msgBytes);
-        msgOut.writeBoolean(true);
-
-        return msgBytes.toByteArray();
+        try (ByteArrayOutputStream msgBytes = new ByteArrayOutputStream();
+             DataOutputStream msgOut = new DataOutputStream(msgBytes)) {
+            msgOut.writeBoolean(true);
+            return msgBytes.toByteArray();
+        }
     }
 }

@@ -2,6 +2,9 @@ package net.coreprotect.consumer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -37,8 +40,7 @@ public class Queue {
 
         if (container == null) {
             forceList.remove(0);
-        }
-        else {
+        } else {
             forceList.add(container);
         }
 
@@ -91,8 +93,7 @@ public class Queue {
                 if (!block.getType().equals(type)) {
                     queueBlockBreak(user, blockState, type, blockData, null, extraData, 0);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }, block.getLocation(), ticks);
@@ -102,8 +103,7 @@ public class Queue {
         if (type == Material.SPAWNER && block instanceof CreatureSpawner) { // Mob spawner
             CreatureSpawner mobSpawner = (CreatureSpawner) block;
             extraData = Util.getSpawnerType(mobSpawner.getSpawnedType());
-        }
-        else if (type == Material.IRON_DOOR || BlockGroup.DOORS.contains(type) || type.equals(Material.SUNFLOWER) || type.equals(Material.LILAC) || type.equals(Material.TALL_GRASS) || type.equals(Material.LARGE_FERN) || type.equals(Material.ROSE_BUSH) || type.equals(Material.PEONY)) { // Double plant
+        } else if (type == Material.IRON_DOOR || BlockGroup.DOORS.contains(type) || type.equals(Material.SUNFLOWER) || type.equals(Material.LILAC) || type.equals(Material.TALL_GRASS) || type.equals(Material.LARGE_FERN) || type.equals(Material.ROSE_BUSH) || type.equals(Material.PEONY)) { // Double plant
             if (block.getBlockData() instanceof Bisected) {
                 if (((Bisected) block.getBlockData()).getHalf().equals(Half.TOP)) {
                     if (blockNumber == 5) {
@@ -120,8 +120,7 @@ public class Queue {
                     }
                 }
             }
-        }
-        else if (type.name().endsWith("_BED") && block.getBlockData() instanceof Bed) {
+        } else if (type.name().endsWith("_BED") && block.getBlockData() instanceof Bed) {
             if (((Bed) block.getBlockData()).getPart().equals(Part.HEAD)) {
                 return;
             }
@@ -152,7 +151,6 @@ public class Queue {
 
             if ((replaceType == Material.IRON_DOOR || BlockGroup.DOORS.contains(replaceType) || replaceType.equals(Material.SUNFLOWER) || replaceType.equals(Material.LILAC) || replaceType.equals(Material.TALL_GRASS) || replaceType.equals(Material.LARGE_FERN) || replaceType.equals(Material.ROSE_BUSH) || replaceType.equals(Material.PEONY)) && replaceData >= 8) { // Double plant top half
                 BlockState blockBelow = blockReplaced.getWorld().getBlockAt(blockReplaced.getX(), blockReplaced.getY() - 1, blockReplaced.getZ()).getState();
-                Material belowType = blockBelow.getType();
                 Queue.queueBlockBreak(user, blockBelow, belowType, blockBelow.getBlockData().getAsString(), 0);
             }
         }
@@ -182,8 +180,7 @@ public class Queue {
         Scheduler.scheduleSyncDelayedTask(CoreProtect.getInstance(), () -> {
             try {
                 queueBlockPlace(user, placed.getBlock().getState(), type, replaced, null, -1, 0, blockData);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }, placed, ticks);
@@ -201,8 +198,7 @@ public class Queue {
 
                     queueBlockPlace(user, blockStateLocation, blockType, blockReplaced, forceT, forceD, forceData, blockData);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }, blockLocation.getLocation(), ticks);
@@ -215,8 +211,7 @@ public class Queue {
                 if (!block.equals(placementBlock)) {
                     queueBlockPlace(user, placementBlock.getState(), blockType, null, blockType, -1, 0, null);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }, location, ticks);

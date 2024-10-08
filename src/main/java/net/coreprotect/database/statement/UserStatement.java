@@ -23,34 +23,29 @@ public class UserStatement {
         try {
             int unixtimestamp = (int) (System.currentTimeMillis() / 1000L);
 
-            PreparedStatement preparedStmt = null;
-            if (Database.hasReturningKeys()) {
-                preparedStmt = connection.prepareStatement("INSERT INTO " + ConfigHandler.prefix + "user (time, user) VALUES (?, ?) RETURNING rowid");
-            }
-            else {
-                preparedStmt = connection.prepareStatement("INSERT INTO " + ConfigHandler.prefix + "user (time, user) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
-            }
+            String query = "INSERT INTO " + ConfigHandler.prefix + "user (time, user) VALUES (?, ?)";
+            PreparedStatement preparedStmt = Database.hasReturningKeys() 
+                ? connection.prepareStatement(query + " RETURNING rowid") 
+                : connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
             preparedStmt.setInt(1, unixtimestamp);
             preparedStmt.setString(2, user);
 
             if (Database.hasReturningKeys()) {
-                ResultSet resultSet = preparedStmt.executeQuery();
-                resultSet.next();
-                id = resultSet.getInt(1);
-                resultSet.close();
-            }
-            else {
+                try (ResultSet resultSet = preparedStmt.executeQuery()) {
+                    if (resultSet.next()) {
+                        id = resultSet.getInt(1);
+                    }
+                }
+            } else {
                 preparedStmt.executeUpdate();
-                ResultSet keys = preparedStmt.getGeneratedKeys();
-                keys.next();
-                id = keys.getInt(1);
-                keys.close();
+                try (ResultSet keys = preparedStmt.getGeneratedKeys()) {
+                    if (keys.next()) {
+                        id = keys.getInt(1);
+                    }
+                }
             }
-
-            preparedStmt.close();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return id;
@@ -61,39 +56,33 @@ public class UserStatement {
             UserStatement.loadId(preparedStatement.getConnection(), user, null);
         }
 
-        return ConfigHandler.playerIdCache.get(user.toLowerCase(Locale.ROOT));
+        return ConfigHandler.playerIdCache.getOrDefault(user.toLowerCase(Locale.ROOT), -1);
     }
 
     public static int loadId(Connection connection, String user, String uuid) {
-        // generate if doesn't exist
         int id = -1;
 
         try {
-            String collate = "";
-            if (!Config.getGlobal().MYSQL) {
-                collate = " COLLATE NOCASE";
-            }
-
+            String collate = Config.getGlobal().MYSQL ? "" : " COLLATE NOCASE";
             String where = "user = ?" + collate;
             if (uuid != null) {
-                where = where + " OR uuid = ?";
+                where += " OR uuid = ?";
             }
 
-            String query = "SELECT rowid as id, uuid FROM " + ConfigHandler.prefix + "user WHERE " + where + " ORDER BY rowid ASC LIMIT 0, 1";
-            PreparedStatement preparedStmt = connection.prepareStatement(query);
-            preparedStmt.setString(1, user);
+            String query = "SELECT rowid as id, uuid FROM " + ConfigHandler.prefix + "user WHERE " + where + " ORDER BY rowid ASC LIMIT 1";
+            try (PreparedStatement preparedStmt = connection.prepareStatement(query)) {
+                preparedStmt.setString(1, user);
+                if (uuid != null) {
+                    preparedStmt.setString(2, uuid);
+                }
 
-            if (uuid != null) {
-                preparedStmt.setString(2, uuid);
+                try (ResultSet resultSet = preparedStmt.executeQuery()) {
+                    if (resultSet.next()) {
+                        id = resultSet.getInt("id");
+                        uuid = resultSet.getString("uuid");
+                    }
+                }
             }
-
-            ResultSet resultSet = preparedStmt.executeQuery();
-            while (resultSet.next()) {
-                id = resultSet.getInt("id");
-                uuid = resultSet.getString("uuid");
-            }
-            resultSet.close();
-            preparedStmt.close();
 
             if (id == -1) {
                 id = insert(connection, user);
@@ -105,8 +94,7 @@ public class UserStatement {
                 ConfigHandler.uuidCache.put(user.toLowerCase(Locale.ROOT), uuid);
                 ConfigHandler.uuidCacheReversed.put(uuid, user);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -114,35 +102,31 @@ public class UserStatement {
     }
 
     public static String loadName(Connection connection, int id) {
-        // generate if doesn't exist
         String user = "";
         String uuid = null;
 
         try {
-            Statement statement = connection.createStatement();
-            String query = "SELECT user, uuid FROM " + ConfigHandler.prefix + "user WHERE rowid='" + id + "' LIMIT 0, 1";
+            String query = "SELECT user, uuid FROM " + ConfigHandler.prefix + "user WHERE rowid=? LIMIT 1";
+            try (PreparedStatement preparedStmt = connection.prepareStatement(query)) {
+                preparedStmt.setInt(1, id);
 
-            ResultSet resultSet = statement.executeQuery(query);
-            while (resultSet.next()) {
-                user = resultSet.getString("user");
-                uuid = resultSet.getString("uuid");
+                try (ResultSet resultSet = preparedStmt.executeQuery()) {
+                    if (resultSet.next()) {
+                        user = resultSet.getString("user");
+                        uuid = resultSet.getString("uuid");
+                    }
+                }
             }
 
-            if (user.length() == 0) {
-                return user;
+            if (!user.isEmpty()) {
+                ConfigHandler.playerIdCache.put(user.toLowerCase(Locale.ROOT), id);
+                ConfigHandler.playerIdCacheReversed.put(id, user);
+                if (uuid != null) {
+                    ConfigHandler.uuidCache.put(user.toLowerCase(Locale.ROOT), uuid);
+                    ConfigHandler.uuidCacheReversed.put(uuid, user);
+                }
             }
-
-            ConfigHandler.playerIdCache.put(user.toLowerCase(Locale.ROOT), id);
-            ConfigHandler.playerIdCacheReversed.put(id, user);
-            if (uuid != null) {
-                ConfigHandler.uuidCache.put(user.toLowerCase(Locale.ROOT), uuid);
-                ConfigHandler.uuidCacheReversed.put(uuid, user);
-            }
-
-            resultSet.close();
-            statement.close();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

@@ -47,14 +47,9 @@ public class Database extends Queue {
         Consumer.transacting = true;
 
         try {
-            if (Config.getGlobal().MYSQL) {
-                statement.executeUpdate("START TRANSACTION");
-            }
-            else {
-                statement.executeUpdate("BEGIN TRANSACTION");
-            }
-        }
-        catch (Exception e) {
+            String transactionCommand = Config.getGlobal().MYSQL ? "START TRANSACTION" : "BEGIN TRANSACTION";
+            statement.executeUpdate(transactionCommand);
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -64,21 +59,14 @@ public class Database extends Queue {
 
         while (true) {
             try {
-                if (Config.getGlobal().MYSQL) {
-                    statement.executeUpdate("COMMIT");
-                }
-                else {
-                    statement.executeUpdate("COMMIT TRANSACTION");
-                }
-            }
-            catch (Exception e) {
+                String commitCommand = Config.getGlobal().MYSQL ? "COMMIT" : "COMMIT TRANSACTION";
+                statement.executeUpdate(commitCommand);
+            } catch (SQLException e) {
                 if (e.getMessage().startsWith("[SQLITE_BUSY]") && count < 30) {
                     Thread.sleep(1000);
                     count++;
-
                     continue;
-                }
-                else {
+                } else {
                     e.printStackTrace();
                 }
             }
@@ -100,8 +88,7 @@ public class Database extends Queue {
             for (int i = 1; i <= count; i++) {
                 statement.setInt(i, value);
             }
-        }
-        catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -123,8 +110,7 @@ public class Database extends Queue {
                         ConfigHandler.forceContainer.put(user.toLowerCase(Locale.ROOT) + "." + location.getBlockX() + "." + location.getBlockY() + "." + location.getBlockZ(), forceList);
                         Queue.queueContainerBreak(user, location, type, contents);
                     }
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -132,8 +118,6 @@ public class Database extends Queue {
     }
 
     public static Connection getConnection(boolean onlyCheckTransacting) {
-        // Previously 250ms; long consumer commit time may be due to batching
-        // TODO: Investigate, potentially remove batching for SQLite connections
         return getConnection(false, false, onlyCheckTransacting, 1000);
     }
 
@@ -151,14 +135,12 @@ public class Database extends Queue {
                 try {
                     connection = ConfigHandler.hikariDataSource.getConnection();
                     ConfigHandler.databaseReachable = true;
-                }
-                catch (Exception e) {
+                } catch (SQLException e) {
                     ConfigHandler.databaseReachable = false;
                     Chat.sendConsoleMessage(Color.RED + "[CoreProtect] " + Phrase.build(Phrase.MYSQL_UNAVAILABLE));
                     e.printStackTrace();
                 }
-            }
-            else {
+            } else {
                 if (Consumer.transacting && onlyCheckTransacting) {
                     Consumer.interrupt = true;
                 }
@@ -166,20 +148,18 @@ public class Database extends Queue {
                 long startTime = System.nanoTime();
                 while (Consumer.isPaused && !force && (Consumer.transacting || !onlyCheckTransacting)) {
                     Thread.sleep(1);
-                    long pauseTime = (System.nanoTime() - startTime) / 1000000;
+                    long pauseTime = (System.nanoTime() - startTime) / 1_000_000;
 
                     if (pauseTime >= waitTime) {
                         return connection;
                     }
                 }
 
-                String database = "jdbc:sqlite:" + ConfigHandler.path + ConfigHandler.sqlite + "";
+                String database = "jdbc:sqlite:" + ConfigHandler.path + ConfigHandler.sqlite;
                 connection = DriverManager.getConnection(database);
-
                 ConfigHandler.databaseReachable = true;
             }
-        }
-        catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 
@@ -192,8 +172,7 @@ public class Database extends Queue {
                 ConfigHandler.hikariDataSource.close();
                 ConfigHandler.hikariDataSource = null;
             }
-        }
-        catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -201,17 +180,16 @@ public class Database extends Queue {
     public static void performUpdate(Statement statement, long id, int rb, int table) {
         try {
             int rolledBack = Util.toggleRolledBack(rb, (table == 2 || table == 3 || table == 4)); // co_item, co_container, co_block
+            String updateCommand;
             if (table == 1 || table == 3) {
-                statement.executeUpdate("UPDATE " + ConfigHandler.prefix + "container SET rolled_back='" + rolledBack + "' WHERE rowid='" + id + "'");
+                updateCommand = "UPDATE " + ConfigHandler.prefix + "container SET rolled_back='" + rolledBack + "' WHERE rowid='" + id + "'";
+            } else if (table == 2) {
+                updateCommand = "UPDATE " + ConfigHandler.prefix + "item SET rolled_back='" + rolledBack + "' WHERE rowid='" + id + "'";
+            } else {
+                updateCommand = "UPDATE " + ConfigHandler.prefix + "block SET rolled_back='" + rolledBack + "' WHERE rowid='" + id + "'";
             }
-            else if (table == 2) {
-                statement.executeUpdate("UPDATE " + ConfigHandler.prefix + "item SET rolled_back='" + rolledBack + "' WHERE rowid='" + id + "'");
-            }
-            else {
-                statement.executeUpdate("UPDATE " + ConfigHandler.prefix + "block SET rolled_back='" + rolledBack + "' WHERE rowid='" + id + "'");
-            }
-        }
-        catch (Exception e) {
+            statement.executeUpdate(updateCommand);
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -219,67 +197,26 @@ public class Database extends Queue {
     public static PreparedStatement prepareStatement(Connection connection, int type, boolean keys) {
         PreparedStatement preparedStatement = null;
         try {
-            String signInsert = "INSERT INTO " + ConfigHandler.prefix + "sign (time, user, wid, x, y, z, action, color, color_secondary, data, waxed, face, line_1, line_2, line_3, line_4, line_5, line_6, line_7, line_8) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            String blockInsert = "INSERT INTO " + ConfigHandler.prefix + "block (time, user, wid, x, y, z, type, data, meta, blockdata, action, rolled_back) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            String skullInsert = "INSERT INTO " + ConfigHandler.prefix + "skull (time, owner, skin) VALUES (?, ?, ?)";
-            String containerInsert = "INSERT INTO " + ConfigHandler.prefix + "container (time, user, wid, x, y, z, type, data, amount, metadata, action, rolled_back) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            String itemInsert = "INSERT INTO " + ConfigHandler.prefix + "item (time, user, wid, x, y, z, type, data, amount, action, rolled_back) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            String worldInsert = "INSERT INTO " + ConfigHandler.prefix + "world (id, world) VALUES (?, ?)";
-            String chatInsert = "INSERT INTO " + ConfigHandler.prefix + "chat (time, user, wid, x, y, z, message) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            String commandInsert = "INSERT INTO " + ConfigHandler.prefix + "command (time, user, wid, x, y, z, message) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            String sessionInsert = "INSERT INTO " + ConfigHandler.prefix + "session (time, user, wid, x, y, z, action) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            String entityInsert = "INSERT INTO " + ConfigHandler.prefix + "entity (time, data) VALUES (?, ?)";
-            String materialInsert = "INSERT INTO " + ConfigHandler.prefix + "material_map (id, material) VALUES (?, ?)";
-            String artInsert = "INSERT INTO " + ConfigHandler.prefix + "art_map (id, art) VALUES (?, ?)";
-            String entityMapInsert = "INSERT INTO " + ConfigHandler.prefix + "entity_map (id, entity) VALUES (?, ?)";
-            String blockdataInsert = "INSERT INTO " + ConfigHandler.prefix + "blockdata_map (id, data) VALUES (?, ?)";
+            String query = switch (type) {
+                case SIGN -> "INSERT INTO " + ConfigHandler.prefix + "sign (time, user, wid, x, y, z, action, color, color_secondary, data, waxed, face, line_1, line_2, line_3, line_4, line_5, line_6, line_7, line_8) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                case BLOCK -> "INSERT INTO " + ConfigHandler.prefix + "block (time, user, wid, x, y, z, type, data, meta, blockdata, action, rolled_back) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                case SKULL -> "INSERT INTO " + ConfigHandler.prefix + "skull (time, owner, skin) VALUES (?, ?, ?)";
+                case CONTAINER -> "INSERT INTO " + ConfigHandler.prefix + "container (time, user, wid, x, y, z, type, data, amount, metadata, action, rolled_back) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                case ITEM -> "INSERT INTO " + ConfigHandler.prefix + "item (time, user, wid, x, y, z, type, data, amount, action, rolled_back) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                case WORLD -> "INSERT INTO " + ConfigHandler.prefix + "world (id, world) VALUES (?, ?)";
+                case CHAT -> "INSERT INTO " + ConfigHandler.prefix + "chat (time, user, wid, x, y, z, message) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                case COMMAND -> "INSERT INTO " + ConfigHandler.prefix + "command (time, user, wid, x, y, z, message) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                case SESSION -> "INSERT INTO " + ConfigHandler.prefix + "session (time, user, wid, x, y, z, action) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                case ENTITY -> "INSERT INTO " + ConfigHandler.prefix + "entity (time, data) VALUES (?, ?)";
+                case MATERIAL -> "INSERT INTO " + ConfigHandler.prefix + "material_map (id, material) VALUES (?, ?)";
+                case ART -> "INSERT INTO " + ConfigHandler.prefix + "art_map (id, art) VALUES (?, ?)";
+                case ENTITY_MAP -> "INSERT INTO " + ConfigHandler.prefix + "entity_map (id, entity) VALUES (?, ?)";
+                case BLOCKDATA -> "INSERT INTO " + ConfigHandler.prefix + "blockdata_map (id, data) VALUES (?, ?)";
+                default -> throw new IllegalArgumentException("Invalid type: " + type);
+            };
 
-            switch (type) {
-                case SIGN:
-                    preparedStatement = prepareStatement(connection, signInsert, keys);
-                    break;
-                case BLOCK:
-                    preparedStatement = prepareStatement(connection, blockInsert, keys);
-                    break;
-                case SKULL:
-                    preparedStatement = prepareStatement(connection, skullInsert, keys);
-                    break;
-                case CONTAINER:
-                    preparedStatement = prepareStatement(connection, containerInsert, keys);
-                    break;
-                case ITEM:
-                    preparedStatement = prepareStatement(connection, itemInsert, keys);
-                    break;
-                case WORLD:
-                    preparedStatement = prepareStatement(connection, worldInsert, keys);
-                    break;
-                case CHAT:
-                    preparedStatement = prepareStatement(connection, chatInsert, keys);
-                    break;
-                case COMMAND:
-                    preparedStatement = prepareStatement(connection, commandInsert, keys);
-                    break;
-                case SESSION:
-                    preparedStatement = prepareStatement(connection, sessionInsert, keys);
-                    break;
-                case ENTITY:
-                    preparedStatement = prepareStatement(connection, entityInsert, keys);
-                    break;
-                case MATERIAL:
-                    preparedStatement = prepareStatement(connection, materialInsert, keys);
-                    break;
-                case ART:
-                    preparedStatement = prepareStatement(connection, artInsert, keys);
-                    break;
-                case ENTITY_MAP:
-                    preparedStatement = prepareStatement(connection, entityMapInsert, keys);
-                    break;
-                case BLOCKDATA:
-                    preparedStatement = prepareStatement(connection, blockdataInsert, keys);
-                    break;
-            }
-        }
-        catch (Exception e) {
+            preparedStatement = prepareStatement(connection, query, keys);
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 
@@ -292,16 +229,13 @@ public class Database extends Queue {
             if (keys) {
                 if (hasReturningKeys()) {
                     preparedStatement = connection.prepareStatement(query + " RETURNING rowid");
-                }
-                else {
+                } else {
                     preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
                 }
-            }
-            else {
+            } else {
                 preparedStatement = connection.prepareStatement(query);
             }
-        }
-        catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 
@@ -311,12 +245,8 @@ public class Database extends Queue {
     private static void initializeTables(String prefix, Statement statement) {
         try {
             if (!Config.getGlobal().MYSQL) {
-                if (!Config.getGlobal().DISABLE_WAL) {
-                    statement.executeUpdate("PRAGMA journal_mode=WAL;");
-                }
-                else {
-                    statement.executeUpdate("PRAGMA journal_mode=DELETE;");
-                }
+                String journalMode = !Config.getGlobal().DISABLE_WAL ? "PRAGMA journal_mode=WAL;" : "PRAGMA journal_mode=DELETE;";
+                statement.executeUpdate(journalMode);
             }
 
             boolean lockInitialized = false;
@@ -332,8 +262,7 @@ public class Database extends Queue {
                 statement.executeUpdate("INSERT INTO " + prefix + "database_lock (rowid, status, time) VALUES ('1', '0', '" + unixtimestamp + "')");
                 Process.lastLockUpdate = 0;
             }
-        }
-        catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -386,8 +315,7 @@ public class Database extends Queue {
                     statement.close();
                     success = true;
                 }
-            }
-            catch (Exception e) {
+            } catch (SQLException e) {
                 e.printStackTrace();
             }
             if (!success) {
@@ -415,8 +343,7 @@ public class Database extends Queue {
                     String type = rs.getString("type");
                     if (type.equalsIgnoreCase("table")) {
                         tableData.add(rs.getString("name"));
-                    }
-                    else if (type.equalsIgnoreCase("index")) {
+                    } else if (type.equalsIgnoreCase("index")) {
                         indexData.add(rs.getString("name"));
                     }
                 }
@@ -567,8 +494,7 @@ public class Database extends Queue {
                     if (!indexData.contains("world_id_index")) {
                         statement.executeUpdate("CREATE INDEX IF NOT EXISTS " + attachDatabase + "world_id_index ON " + ConfigHandler.prefix + "world(id);");
                     }
-                }
-                catch (Exception e) {
+                } catch (SQLException e) {
                     Chat.console(Phrase.build(Phrase.DATABASE_INDEX_ERROR));
                     if (purge) {
                         e.printStackTrace();
@@ -578,8 +504,7 @@ public class Database extends Queue {
                     initializeTables(prefix, statement);
                 }
                 statement.close();
-            }
-            catch (Exception e) {
+            } catch (SQLException e) {
                 e.printStackTrace();
             }
         }

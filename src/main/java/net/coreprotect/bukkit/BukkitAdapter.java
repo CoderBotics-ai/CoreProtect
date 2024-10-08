@@ -46,30 +46,13 @@ public class BukkitAdapter implements BukkitInterface {
 
     public static void loadAdapter() {
         switch (ConfigHandler.SERVER_VERSION) {
-            case BUKKIT_V1_13:
-            case BUKKIT_V1_14:
-            case BUKKIT_V1_15:
-                BukkitAdapter.ADAPTER = new BukkitAdapter();
-                break;
-            case BUKKIT_V1_16:
-                BukkitAdapter.ADAPTER = new Bukkit_v1_16();
-                break;
-            case BUKKIT_V1_17:
-                BukkitAdapter.ADAPTER = new Bukkit_v1_17();
-                break;
-            case BUKKIT_V1_18:
-                BukkitAdapter.ADAPTER = new Bukkit_v1_18();
-                break;
-            case BUKKIT_V1_19:
-                BukkitAdapter.ADAPTER = new Bukkit_v1_19();
-                break;
-            case BUKKIT_V1_20:
-                BukkitAdapter.ADAPTER = new Bukkit_v1_20();
-                break;
-            case BUKKIT_V1_21:
-            default:
-                BukkitAdapter.ADAPTER = new Bukkit_v1_21();
-                break;
+            case BUKKIT_V1_13, BUKKIT_V1_14, BUKKIT_V1_15 -> BukkitAdapter.ADAPTER = new BukkitAdapter();
+            case BUKKIT_V1_16 -> BukkitAdapter.ADAPTER = new Bukkit_v1_16();
+            case BUKKIT_V1_17 -> BukkitAdapter.ADAPTER = new Bukkit_v1_17();
+            case BUKKIT_V1_18 -> BukkitAdapter.ADAPTER = new Bukkit_v1_18();
+            case BUKKIT_V1_19 -> BukkitAdapter.ADAPTER = new Bukkit_v1_19();
+            case BUKKIT_V1_20 -> BukkitAdapter.ADAPTER = new Bukkit_v1_20();
+            case BUKKIT_V1_21, default -> BukkitAdapter.ADAPTER = new Bukkit_v1_21();
         }
     }
 
@@ -105,10 +88,9 @@ public class BukkitAdapter implements BukkitInterface {
 
     @Override
     public boolean isAttached(Block block, Block scanBlock, BlockData blockData, int scanMin) {
-        if (blockData instanceof Directional) {
-            return (scanMin < 5 && scanBlock.getRelative(((Directional) blockData).getFacing().getOppositeFace()).getLocation().equals(block.getLocation()));
+        if (blockData instanceof Directional directional) {
+            return (scanMin < 5 && scanBlock.getRelative(directional.getFacing().getOppositeFace()).getLocation().equals(block.getLocation()));
         }
-
         return true; // unvalidated attachments default to true
     }
 
@@ -139,7 +121,10 @@ public class BukkitAdapter implements BukkitInterface {
 
     @Override
     public Material getFrameType(EntityType type) {
-        return type == EntityType.ITEM_FRAME ? Material.ITEM_FRAME : null;
+        return switch (type) {
+            case ITEM_FRAME -> Material.ITEM_FRAME;
+            default -> null;
+        };
     }
 
     @Override
@@ -169,51 +154,35 @@ public class BukkitAdapter implements BukkitInterface {
 
     @Override
     public void setGlowing(Sign sign, boolean isFront, boolean isGlowing) {
-        return;
+        // No operation
     }
 
     @Override
     public void setColor(Sign sign, boolean isFront, int color) {
-        if (!isFront) {
-            return;
+        if (isFront) {
+            sign.setColor(DyeColor.getByColor(Color.fromRGB(color)));
         }
-
-        sign.setColor(DyeColor.getByColor(Color.fromRGB(color)));
     }
 
     @Override
     public void setWaxed(Sign sign, boolean isWaxed) {
-        return;
+        // No operation
     }
 
     @Override
     public int getColor(Sign sign, boolean isFront) {
-        if (isFront) {
-            return sign.getColor().getColor().asRGB();
-        }
-
-        return 0;
+        return isFront ? sign.getColor().getColor().asRGB() : 0;
     }
 
     @Override
     public Material getPlantSeeds(Material material) {
-        switch (material) {
-            case WHEAT:
-                material = Material.WHEAT_SEEDS;
-                break;
-            case PUMPKIN_STEM:
-                material = Material.PUMPKIN_SEEDS;
-                break;
-            case MELON_STEM:
-                material = Material.MELON_SEEDS;
-                break;
-            case BEETROOTS:
-                material = Material.BEETROOT_SEEDS;
-                break;
-            default:
-        }
-
-        return material;
+        return switch (material) {
+            case WHEAT -> Material.WHEAT_SEEDS;
+            case PUMPKIN_STEM -> Material.PUMPKIN_SEEDS;
+            case MELON_STEM -> Material.MELON_SEEDS;
+            case BEETROOTS -> Material.BEETROOT_SEEDS;
+            default -> material;
+        };
     }
 
     @Override
@@ -248,22 +217,13 @@ public class BukkitAdapter implements BukkitInterface {
 
     @Override
     public String getLine(Sign sign, int line) {
-        if (line < 4) {
-            return sign.getLine(line);
-        }
-        else {
-            return "";
-        }
+        return line < 4 ? sign.getLine(line) : "";
     }
 
     @Override
     public void setLine(Sign sign, int line, String string) {
-        if (string == null) {
-            string = "";
-        }
-
         if (line < 4) {
-            sign.setLine(line, string);
+            sign.setLine(line, string != null ? string : "");
         }
     }
 
@@ -284,18 +244,15 @@ public class BukkitAdapter implements BukkitInterface {
             }
             itemStack.setItemMeta(meta);
         }
-
         return itemStack;
     }
 
     @Override
     public EntityType getEntityType(Material material) {
-        switch (material) {
-            case END_CRYSTAL:
-                return EntityType.valueOf("ENDER_CRYSTAL");
-            default:
-                return EntityType.UNKNOWN;
-        }
+        return switch (material) {
+            case END_CRYSTAL -> EntityType.valueOf("ENDER_CRYSTAL");
+            default -> EntityType.UNKNOWN;
+        };
     }
 
     @Override
@@ -307,5 +264,4 @@ public class BukkitAdapter implements BukkitInterface {
     public Object getRegistryValue(String key, Object tClass) {
         return null;
     }
-
 }

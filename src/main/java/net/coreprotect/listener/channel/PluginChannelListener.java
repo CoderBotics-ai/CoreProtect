@@ -38,38 +38,27 @@ public class PluginChannelListener implements Listener {
         String phraseSelector = Phrase.getPhraseSelector(phrase, selector);
         String worldName = Util.getWorldName(worldId);
 
-        ByteArrayOutputStream msgBytes = new ByteArrayOutputStream();
-        DataOutputStream msgOut = new DataOutputStream(msgBytes);
-        msgOut.writeInt(1);
-        msgOut.writeLong(timeAgo * 1000);
-        msgOut.writeUTF(phraseSelector);
-        msgOut.writeUTF(resultUser);
-        msgOut.writeUTF(target);
-        msgOut.writeInt(amount);
-        msgOut.writeInt(x);
-        msgOut.writeInt(y);
-        msgOut.writeInt(z);
-        msgOut.writeUTF(worldName);
-        msgOut.writeBoolean(!rbFormat.isEmpty());
-        msgOut.writeBoolean(isContainer);
-        msgOut.writeBoolean(added);
-        if (Config.getGlobal().NETWORK_DEBUG) {
-            Chat.console(String.valueOf(timeAgo * 1000));
-            Chat.console(phraseSelector);
-            Chat.console(resultUser);
-            Chat.console(target);
-            Chat.console(String.valueOf(amount));
-            Chat.console(String.valueOf(x));
-            Chat.console(String.valueOf(y));
-            Chat.console(String.valueOf(z));
-            Chat.console(worldName);
-            Chat.console(String.valueOf(!rbFormat.isEmpty()));
-            Chat.console(String.valueOf(isContainer));
-            Chat.console(String.valueOf(added));
-            Chat.console("");
-        }
+        try (ByteArrayOutputStream msgBytes = new ByteArrayOutputStream(); 
+             DataOutputStream msgOut = new DataOutputStream(msgBytes)) {
+            msgOut.writeInt(1);
+            msgOut.writeLong(timeAgo * 1000);
+            msgOut.writeUTF(phraseSelector);
+            msgOut.writeUTF(resultUser);
+            msgOut.writeUTF(target);
+            msgOut.writeInt(amount);
+            msgOut.writeInt(x);
+            msgOut.writeInt(y);
+            msgOut.writeInt(z);
+            msgOut.writeUTF(worldName);
+            msgOut.writeBoolean(!rbFormat.isEmpty());
+            msgOut.writeBoolean(isContainer);
+            msgOut.writeBoolean(added);
+            if (Config.getGlobal().NETWORK_DEBUG) {
+                logDebugInfo(timeAgo, phraseSelector, resultUser, target, amount, x, y, z, worldName, rbFormat, isContainer, added);
+            }
 
-        send(commandSender, msgBytes.toByteArray());
+            send(commandSender, msgBytes.toByteArray());
+        }
     }
 
     public void sendInfoData(CommandSender commandSender, long timeAgo, Phrase phrase, String selector, String resultUser, int amount, int x, int y, int z, int worldId) throws IOException {
@@ -80,31 +69,23 @@ public class PluginChannelListener implements Listener {
         String phraseSelector = Phrase.getPhraseSelector(phrase, selector);
         String worldName = Util.getWorldName(worldId);
 
-        ByteArrayOutputStream msgBytes = new ByteArrayOutputStream();
-        DataOutputStream msgOut = new DataOutputStream(msgBytes);
+        try (ByteArrayOutputStream msgBytes = new ByteArrayOutputStream(); 
+             DataOutputStream msgOut = new DataOutputStream(msgBytes)) {
+            msgOut.writeInt(2);
+            msgOut.writeLong(timeAgo * 1000);
+            msgOut.writeUTF(phraseSelector);
+            msgOut.writeUTF(resultUser);
+            msgOut.writeInt(amount);
+            msgOut.writeInt(x);
+            msgOut.writeInt(y);
+            msgOut.writeInt(z);
+            msgOut.writeUTF(worldName);
+            if (Config.getGlobal().NETWORK_DEBUG) {
+                logDebugInfo(timeAgo, phraseSelector, resultUser, amount, x, y, z, worldName);
+            }
 
-        msgOut.writeInt(2);
-        msgOut.writeLong(timeAgo * 1000);
-        msgOut.writeUTF(phraseSelector);
-        msgOut.writeUTF(resultUser);
-        msgOut.writeInt(amount);
-        msgOut.writeInt(x);
-        msgOut.writeInt(y);
-        msgOut.writeInt(z);
-        msgOut.writeUTF(worldName);
-        if (Config.getGlobal().NETWORK_DEBUG) {
-            Chat.console(String.valueOf(timeAgo * 1000));
-            Chat.console(phraseSelector);
-            Chat.console(resultUser);
-            Chat.console(String.valueOf(amount));
-            Chat.console(String.valueOf(x));
-            Chat.console(String.valueOf(y));
-            Chat.console(String.valueOf(z));
-            Chat.console(worldName);
-            Chat.console("");
+            send(commandSender, msgBytes.toByteArray());
         }
-
-        send(commandSender, msgBytes.toByteArray());
     }
 
     public void sendMessageData(CommandSender commandSender, long timeAgo, String resultUser, String message, boolean sign, int x, int y, int z, int worldId) throws IOException {
@@ -114,31 +95,23 @@ public class PluginChannelListener implements Listener {
 
         String worldName = Util.getWorldName(worldId);
 
-        ByteArrayOutputStream msgBytes = new ByteArrayOutputStream();
-        DataOutputStream msgOut = new DataOutputStream(msgBytes);
+        try (ByteArrayOutputStream msgBytes = new ByteArrayOutputStream(); 
+             DataOutputStream msgOut = new DataOutputStream(msgBytes)) {
+            msgOut.writeInt(3);
+            msgOut.writeLong(timeAgo * 1000);
+            msgOut.writeUTF(resultUser);
+            msgOut.writeUTF(message);
+            msgOut.writeBoolean(sign);
+            msgOut.writeInt(x);
+            msgOut.writeInt(y);
+            msgOut.writeInt(z);
+            msgOut.writeUTF(worldName);
+            if (Config.getGlobal().NETWORK_DEBUG) {
+                logDebugInfo(timeAgo, resultUser, message, sign, x, y, z, worldName);
+            }
 
-        msgOut.writeInt(3);
-        msgOut.writeLong(timeAgo * 1000);
-        msgOut.writeUTF(resultUser);
-        msgOut.writeUTF(message);
-        msgOut.writeBoolean(sign);
-        msgOut.writeInt(x);
-        msgOut.writeInt(y);
-        msgOut.writeInt(z);
-        msgOut.writeUTF(worldName);
-        if (Config.getGlobal().NETWORK_DEBUG) {
-            Chat.console(String.valueOf(timeAgo * 1000));
-            Chat.console(resultUser);
-            Chat.console(message);
-            Chat.console(String.valueOf(sign));
-            Chat.console(String.valueOf(x));
-            Chat.console(String.valueOf(y));
-            Chat.console(String.valueOf(z));
-            Chat.console(worldName);
-            Chat.console("");
+            send(commandSender, msgBytes.toByteArray());
         }
-
-        send(commandSender, msgBytes.toByteArray());
     }
 
     public void sendUsernameData(CommandSender commandSender, long timeAgo, String resultUser, String target) throws IOException {
@@ -146,22 +119,19 @@ public class PluginChannelListener implements Listener {
             return;
         }
 
-        ByteArrayOutputStream msgBytes = new ByteArrayOutputStream();
-        DataOutputStream msgOut = new DataOutputStream(msgBytes);
+        try (ByteArrayOutputStream msgBytes = new ByteArrayOutputStream(); 
+             DataOutputStream msgOut = new DataOutputStream(msgBytes)) {
+            msgOut.writeInt(4);
+            msgOut.writeLong(timeAgo * 1000);
+            msgOut.writeUTF(resultUser);
+            msgOut.writeUTF(target);
 
-        msgOut.writeInt(4);
-        msgOut.writeLong(timeAgo * 1000);
-        msgOut.writeUTF(resultUser);
-        msgOut.writeUTF(target);
+            if (Config.getGlobal().NETWORK_DEBUG) {
+                logDebugInfo(timeAgo, resultUser, target);
+            }
 
-        if (Config.getGlobal().NETWORK_DEBUG) {
-            Chat.console(String.valueOf(timeAgo * 1000));
-            Chat.console(resultUser);
-            Chat.console(target);
-            Chat.console("");
+            send(commandSender, msgBytes.toByteArray());
         }
-
-        send(commandSender, msgBytes.toByteArray());
     }
 
     public void sendTest(CommandSender commandSender, String type) throws IOException {
@@ -197,15 +167,15 @@ public class PluginChannelListener implements Listener {
                 break;
         }
 
-        commandSender.sendMessage(Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.NETWORK_TEST));
+        commandSender.sendMessage(Color.DARK_AQUA + "CoreProtect " + Color.WHITE + " - " + Phrase.build(Phrase.NETWORK_TEST));
     }
 
     private void send(CommandSender commandSender, byte[] msgBytes) {
-        if (!(commandSender instanceof Player)) {
+        if (!(commandSender instanceof Player player)) {
             return;
         }
 
-        PluginChannelListener.getInstance().sendCoreProtectData((Player) commandSender, msgBytes);
+        sendCoreProtectData(player, msgBytes);
     }
 
     private void sendCoreProtectData(Player player, byte[] data) {
@@ -214,5 +184,15 @@ public class PluginChannelListener implements Listener {
         }
 
         player.sendPluginMessage(CoreProtect.getInstance(), pluginChannel, data);
+    }
+
+    private void logDebugInfo(long timeAgo, Object... details) {
+        if (Config.getGlobal().NETWORK_DEBUG) {
+            Chat.console(String.valueOf(timeAgo * 1000));
+            for (Object detail : details) {
+                Chat.console(String.valueOf(detail));
+            }
+            Chat.console("");
+        }
     }
 }

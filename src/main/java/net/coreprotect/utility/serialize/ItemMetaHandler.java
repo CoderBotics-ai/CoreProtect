@@ -36,15 +36,9 @@ public class ItemMetaHandler {
         String name = enchantment.getKey().getKey();
 
         switch (name) {
-            case "vanishing_curse":
-                name = "Curse of Vanishing";
-                break;
-            case "binding_curse":
-                name = "Curse of Binding";
-                break;
-            default:
-                name = Util.capitalize(name.replace("_", " "), true);
-                break;
+            case "vanishing_curse" -> name = "Curse of Vanishing";
+            case "binding_curse" -> name = "Curse of Binding";
+            default -> name = Util.capitalize(name.replace("_", " "), true);
         }
 
         if (enchantment.getMaxLevel() > 1) {
@@ -55,30 +49,19 @@ public class ItemMetaHandler {
     }
 
     private static String getEnchantmentLevel(int level) {
-        switch (level) {
-            case 1:
-                return "I";
-            case 2:
-                return "II";
-            case 3:
-                return "III";
-            case 4:
-                return "IV";
-            case 5:
-                return "V";
-            case 6:
-                return "VI";
-            case 7:
-                return "VII";
-            case 8:
-                return "VIII";
-            case 9:
-                return "IX";
-            case 10:
-                return "X";
-            default:
-                return Integer.toString(level);
-        }
+        return switch (level) {
+            case 1 -> "I";
+            case 2 -> "II";
+            case 3 -> "III";
+            case 4 -> "IV";
+            case 5 -> "V";
+            case 6 -> "VI";
+            case 7 -> "VII";
+            case 8 -> "VIII";
+            case 9 -> "IX";
+            case 10 -> "X";
+            default -> Integer.toString(level);
+        };
     }
 
     private static Map<Enchantment, Integer> getEnchantments(ItemMeta itemMeta) {
@@ -86,12 +69,9 @@ public class ItemMetaHandler {
             return null;
         }
 
-        if (itemMeta instanceof EnchantmentStorageMeta) {
-            EnchantmentStorageMeta enchantmentStorageEngine = (EnchantmentStorageMeta) itemMeta;
-            return enchantmentStorageEngine.getStoredEnchants();
-        }
-
-        return itemMeta.getEnchants();
+        return itemMeta instanceof EnchantmentStorageMeta enchantmentStorageEngine 
+            ? enchantmentStorageEngine.getStoredEnchants() 
+            : itemMeta.getEnchants();
     }
 
     public static List<String> getEnchantments(ItemStack item, String displayName) {
@@ -135,10 +115,8 @@ public class ItemMetaHandler {
                 }
             }
 
-            if (itemMeta instanceof LeatherArmorMeta) {
-                LeatherArmorMeta meta = (LeatherArmorMeta) itemMeta;
+            if (itemMeta instanceof LeatherArmorMeta meta) {
                 LeatherArmorMeta subMeta = meta.clone();
-
                 meta.setColor(Bukkit.getServer().getItemFactory().getDefaultLeatherColor());
                 list.add(meta.serialize());
                 metadata.add(list);
@@ -146,9 +124,7 @@ public class ItemMetaHandler {
                 list = new ArrayList<>();
                 list.add(subMeta.getColor().serialize());
                 metadata.add(list);
-            }
-            else if (itemMeta instanceof PotionMeta) {
-                PotionMeta meta = (PotionMeta) itemMeta;
+            } else if (itemMeta instanceof PotionMeta meta) {
                 PotionMeta subMeta = meta.clone();
                 meta.setColor(null);
                 meta.clearCustomEffects();
@@ -166,9 +142,7 @@ public class ItemMetaHandler {
                         metadata.add(list);
                     }
                 }
-            }
-            else if (itemMeta instanceof FireworkMeta) {
-                FireworkMeta meta = (FireworkMeta) itemMeta;
+            } else if (itemMeta instanceof FireworkMeta meta) {
                 FireworkMeta subMeta = meta.clone();
                 meta.clearEffects();
                 list.add(meta.serialize());
@@ -179,9 +153,7 @@ public class ItemMetaHandler {
                         deserializeFireworkEffect(effect, metadata);
                     }
                 }
-            }
-            else if (itemMeta instanceof FireworkEffectMeta) {
-                FireworkEffectMeta meta = (FireworkEffectMeta) itemMeta;
+            } else if (itemMeta instanceof FireworkEffectMeta meta) {
                 FireworkEffectMeta subMeta = meta.clone();
                 meta.setEffect(null);
                 list.add(meta.serialize());
@@ -191,10 +163,8 @@ public class ItemMetaHandler {
                     FireworkEffect effect = subMeta.getEffect();
                     deserializeFireworkEffect(effect, metadata);
                 }
-            }
-            else if (itemMeta instanceof BannerMeta) {
-                BannerMeta meta = (BannerMeta) itemMeta;
-                BannerMeta subMeta = (BannerMeta) meta.clone();
+            } else if (itemMeta instanceof BannerMeta meta) {
+                BannerMeta subMeta = (BannerMeta) itemMeta.clone();
                 meta.setPatterns(new ArrayList<>());
                 list.add(meta.serialize());
                 metadata.add(list);
@@ -204,10 +174,8 @@ public class ItemMetaHandler {
                     list.add(pattern.serialize());
                     metadata.add(list);
                 }
-            }
-            else if (itemMeta instanceof CrossbowMeta) {
-                CrossbowMeta meta = (CrossbowMeta) itemMeta;
-                CrossbowMeta subMeta = (CrossbowMeta) meta.clone();
+            } else if (itemMeta instanceof CrossbowMeta meta) {
+                CrossbowMeta subMeta = meta.clone();
                 meta.setChargedProjectiles(null);
                 list.add(meta.serialize());
                 metadata.add(list);
@@ -217,16 +185,14 @@ public class ItemMetaHandler {
 
                     for (ItemStack chargedProjectile : subMeta.getChargedProjectiles()) {
                         Map<String, Object> itemMap = Util.serializeItemStack(chargedProjectile, null, slot);
-                        if (itemMap.size() > 0) {
+                        if (!itemMap.isEmpty()) {
                             list.add(itemMap);
                         }
                     }
 
                     metadata.add(list);
                 }
-            }
-            else if (itemMeta instanceof MapMeta) {
-                MapMeta meta = (MapMeta) itemMeta;
+            } else if (itemMeta instanceof MapMeta meta) {
                 MapMeta subMeta = meta.clone();
                 meta.setColor(null);
                 list.add(meta.serialize());
@@ -237,9 +203,7 @@ public class ItemMetaHandler {
                     list.add(subMeta.getColor().serialize());
                     metadata.add(list);
                 }
-            }
-            else if (itemMeta instanceof SuspiciousStewMeta) {
-                SuspiciousStewMeta meta = (SuspiciousStewMeta) itemMeta;
+            } else if (itemMeta instanceof SuspiciousStewMeta meta) {
                 SuspiciousStewMeta subMeta = meta.clone();
                 meta.clearCustomEffects();
                 list.add(meta.serialize());
@@ -252,8 +216,7 @@ public class ItemMetaHandler {
                         metadata.add(list);
                     }
                 }
-            }
-            else if (!BukkitAdapter.ADAPTER.getItemMeta(itemMeta, list, metadata, slot)) {
+            } else if (!BukkitAdapter.ADAPTER.getItemMeta(itemMeta, list, metadata, slot)) {
                 list.add(itemMeta.serialize());
                 metadata.add(list);
             }
@@ -267,7 +230,7 @@ public class ItemMetaHandler {
             metadata.add(list);
         }
 
-        if (faceData != null && faceData.length() > 0) {
+        if (faceData != null && !faceData.isEmpty()) {
             Map<String, Object> meta = new HashMap<>();
             meta.put("facing", faceData);
             list = new ArrayList<>();
@@ -275,7 +238,7 @@ public class ItemMetaHandler {
             metadata.add(list);
         }
 
-        if (modifiers.size() > 0) {
+        if (!modifiers.isEmpty()) {
             Map<String, Object> meta = new HashMap<>();
             meta.put("modifiers", modifiers);
             list = new ArrayList<>();
@@ -308,5 +271,4 @@ public class ItemMetaHandler {
         metadata.add(colorList);
         metadata.add(fadeList);
     }
-
 }
