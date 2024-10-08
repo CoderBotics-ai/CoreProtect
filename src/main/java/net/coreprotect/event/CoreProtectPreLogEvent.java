@@ -33,7 +33,6 @@ public class CoreProtectPreLogEvent extends Event implements Cancellable {
         if (newUser == null || newUser.isEmpty()) {
             throw new IllegalArgumentException("Invalid user");
         }
-
         this.user = newUser;
     }
 
@@ -45,5 +44,4 @@ public class CoreProtectPreLogEvent extends Event implements Cancellable {
     public static HandlerList getHandlerList() {
         return handlers;
     }
-
 }

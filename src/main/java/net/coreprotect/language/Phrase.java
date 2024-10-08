@@ -265,11 +265,10 @@ public enum Phrase {
         }
 
         if ((index + indexExtra) != params.length) { // fallback for issues with user modified phrases
-            // System.out.println("buildInternal"); // debug
             output = buildInternal(phrase, params, color);
         }
 
-        if (color.length() > 0) {
+        if (!color.isEmpty()) {
             output = output.replaceFirst(SPLIT, SPLIT + color);
             output = output.replaceFirst(FULL_WIDTH_SPLIT, FULL_WIDTH_SPLIT + color);
             output = ChatMessage.parseQuotes(output, color);

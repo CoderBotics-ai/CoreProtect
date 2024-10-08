@@ -83,17 +83,16 @@ public class PaperAdapter implements PaperInterface {
 
     @Override
     public void setSkullOwner(Skull skull, String owner) {
-        return;
+        // No operation needed as per current implementation
     }
 
     @Override
     public String getSkullSkin(Skull skull) {
-        return null;
+        return null; // No skin retrieval implemented
     }
 
     @Override
     public void setSkullSkin(Skull skull, String skin) {
-        return;
+        // No operation needed as per current implementation
     }
-
 }

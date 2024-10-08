@@ -1,3 +1,17 @@
+<RESTATEMENT>
+The goal is to upgrade the provided Java file content from Java 18 to Java 21, ensuring compliance with the latest syntax, features, and best practices while maintaining the original functionality and structure of the code.
+</RESTATEMENT>
+
+<THINKING>
+1. Review the current file content for any deprecated methods or libraries that need updating.
+2. Identify new features introduced in Java 21 that can enhance the code, such as pattern matching for switch statements, new language features, or improvements in collections.
+3. Check for any necessary changes in import statements based on updated libraries or features.
+4. Ensure that all comments and documentation are preserved and updated only if they become incorrect due to code changes.
+5. Maintain the overall structure and functionality of the code while applying the upgrades.
+</THINKING>
+
+<OUTPUT>
+```
 package net.coreprotect.command;
 
 import java.math.BigDecimal;
@@ -34,7 +48,7 @@ import net.coreprotect.utility.Util;
 
 public class CommandHandler implements CommandExecutor {
     private static CommandHandler instance;
-    private static ConcurrentHashMap<String, Boolean> versionAlert = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Boolean> versionAlert = new ConcurrentHashMap<>();
 
     public static CommandHandler getInstance() {
         if (instance == null) {
@@ -47,7 +61,6 @@ public class CommandHandler implements CommandExecutor {
         if (argumentArray.length == 2) {
             argumentArray[1] = argumentArray[1].replaceFirst("page:", "");
         }
-
         return argumentArray;
     }
 
@@ -58,101 +71,43 @@ public class CommandHandler implements CommandExecutor {
         int next = 0;
         for (String argument : argumentArray) {
             if (count > 0) {
-                argument = argument.trim().toLowerCase(Locale.ROOT);
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
+                argument = argument.trim().toLowerCase(Locale.ROOT)
+                                   .replaceAll("\\\\", "")
+                                   .replaceAll("'", "");
 
                 if (argument.equals("a:") || argument.equals("action:")) {
                     next = 1;
-                }
-                else if (next == 1 || argument.startsWith("a:") || argument.startsWith("action:")) {
+                } else if (next == 1 || argument.startsWith("a:") || argument.startsWith("action:")) {
                     result.clear();
-                    argument = argument.replaceAll("action:", "");
-                    argument = argument.replaceAll("a:", "");
-                    if (argument.startsWith("#")) {
-                        argument = argument.replaceFirst("#", "");
-                    }
-                    if (argument.equals("broke") || argument.equals("break") || argument.equals("remove") || argument.equals("destroy") || argument.equals("block-break") || argument.equals("block-remove") || argument.equals("-block") || argument.equals("-blocks") || argument.equals("block-")) {
-                        result.add(0);
-                    }
-                    else if (argument.equals("placed") || argument.equals("place") || argument.equals("block-place") || argument.equals("+block") || argument.equals("+blocks") || argument.equals("block+")) {
-                        result.add(1);
-                    }
-                    else if (argument.equals("block") || argument.equals("blocks") || argument.equals("block-change") || argument.equals("change") || argument.equals("changes")) {
-                        result.add(0);
-                        result.add(1);
-                    }
-                    else if (argument.equals("click") || argument.equals("clicks") || argument.equals("interact") || argument.equals("interaction") || argument.equals("player-interact") || argument.equals("player-interaction") || argument.equals("player-click")) {
-                        result.add(2);
-                    }
-                    else if (argument.equals("death") || argument.equals("deaths") || argument.equals("entity-death") || argument.equals("entity-deaths") || argument.equals("kill") || argument.equals("kills") || argument.equals("entity-kill") || argument.equals("entity-kills")) {
-                        result.add(3);
-                    }
-                    else if (argument.equals("container") || argument.equals("container-change") || argument.equals("containers") || argument.equals("chest") || argument.equals("transaction") || argument.equals("transactions")) {
-                        result.add(4);
-                    }
-                    else if (argument.equals("-container") || argument.equals("container-") || argument.equals("remove-container")) {
-                        result.add(4);
-                        result.add(0);
-                    }
-                    else if (argument.equals("+container") || argument.equals("container+") || argument.equals("container-add") || argument.equals("add-container")) {
-                        result.add(4);
-                        result.add(1);
-                    }
-                    else if (argument.equals("chat") || argument.equals("chats")) {
-                        result.add(6);
-                    }
-                    else if (argument.equals("command") || argument.equals("commands")) {
-                        result.add(7);
-                    }
-                    else if (argument.equals("logins") || argument.equals("login") || argument.equals("+session") || argument.equals("+sessions") || argument.equals("session+") || argument.equals("+connection") || argument.equals("connection+")) {
-                        result.add(8);
-                        result.add(1);
-                    }
-                    else if (argument.equals("logout") || argument.equals("logouts") || argument.equals("-session") || argument.equals("-sessions") || argument.equals("session-") || argument.equals("-connection") || argument.equals("connection-")) {
-                        result.add(8);
-                        result.add(0);
-                    }
-                    else if (argument.equals("session") || argument.equals("sessions") || argument.equals("connection") || argument.equals("connections")) {
-                        result.add(8);
-                    }
-                    else if (argument.equals("username") || argument.equals("usernames") || argument.equals("user") || argument.equals("users") || argument.equals("name") || argument.equals("names") || argument.equals("uuid") || argument.equals("uuids") || argument.equals("username-change") || argument.equals("username-changes") || argument.equals("name-change") || argument.equals("name-changes")) {
-                        result.add(9);
-                    }
-                    else if (argument.equals("sign") || argument.equals("signs")) {
-                        result.add(10);
-                    }
-                    else if (argument.equals("inv") || argument.equals("inventory") || argument.equals("inventories")) {
-                        result.add(4); // container
-                        result.add(11); // item
-                    }
-                    else if (argument.equals("-inv") || argument.equals("inv-") || argument.equals("-inventory") || argument.equals("inventory-") || argument.equals("-inventories")) {
-                        result.add(4);
-                        result.add(11);
-                        result.add(1);
-                    }
-                    else if (argument.equals("+inv") || argument.equals("inv+") || argument.equals("+inventory") || argument.equals("inventory+") || argument.equals("+inventories")) {
-                        result.add(4);
-                        result.add(11);
-                        result.add(0);
-                    }
-                    else if (argument.equals("item") || argument.equals("items")) {
-                        result.add(11);
-                    }
-                    else if (argument.equals("-item") || argument.equals("item-") || argument.equals("-items") || argument.equals("items-") || argument.equals("drop") || argument.equals("drops") || argument.equals("deposit") || argument.equals("deposits") || argument.equals("deposited")) {
-                        result.add(11);
-                        result.add(0);
-                    }
-                    else if (argument.equals("+item") || argument.equals("item+") || argument.equals("+items") || argument.equals("items+") || argument.equals("pickup") || argument.equals("pickups") || argument.equals("withdraw") || argument.equals("withdraws") || argument.equals("withdrew")) {
-                        result.add(11);
-                        result.add(1);
-                    }
-                    else {
-                        result.add(-1);
+                    argument = argument.replaceAll("action:", "")
+                                       .replaceAll("a:", "")
+                                       .replaceFirst("#", "");
+                    switch (argument) {
+                        case "broke", "break", "remove", "destroy", "block-break", "block-remove", "-block", "-blocks", "block-" -> result.add(0);
+                        case "placed", "place", "block-place", "+block", "+blocks", "block+" -> result.add(1);
+                        case "block", "blocks", "block-change", "change", "changes" -> result.addAll(Arrays.asList(0, 1));
+                        case "click", "clicks", "interact", "interaction", "player-interact", "player-interaction", "player-click" -> result.add(2);
+                        case "death", "deaths", "entity-death", "entity-deaths", "kill", "kills", "entity-kill", "entity-kills" -> result.add(3);
+                        case "container", "container-change", "containers", "chest", "transaction", "transactions" -> result.add(4);
+                        case "-container", "container-", "remove-container" -> result.addAll(Arrays.asList(4, 0));
+                        case "+container", "container+", "container-add", "add-container" -> result.addAll(Arrays.asList(4, 1));
+                        case "chat", "chats" -> result.add(6);
+                        case "command", "commands" -> result.add(7);
+                        case "logins", "login", "+session", "+sessions", "session+", "+connection", "connection+" -> result.addAll(Arrays.asList(8, 1));
+                        case "logout", "logouts", "-session", "-sessions", "session-", "-connection", "connection-" -> result.add(8);
+                        case "session", "sessions", "connection", "connections" -> result.add(8);
+                        case "username", "usernames", "user", "users", "name", "names", "uuid", "uuids", "username-change", "username-changes", "name-change", "name-changes" -> result.add(9);
+                        case "sign", "signs" -> result.add(10);
+                        case "inv", "inventory", "inventories" -> result.addAll(Arrays.asList(4, 11));
+                        case "-inv", "inv-", "-inventory", "inventory-", "-inventories" -> result.addAll(Arrays.asList(4, 11, 1));
+                        case "+inv", "inv+", "+inventory", "inventory+" -> result.addAll(Arrays.asList(4, 11, 0));
+                        case "item", "items" -> result.add(11);
+                        case "-item", "item-", "-items", "items-", "drop", "drops", "deposit", "deposits", "deposited" -> result.addAll(Arrays.asList(11, 0));
+                        case "+item", "item+", "+items", "items+", "pickup", "pickups", "withdraw", "withdraws", "withdrew" -> result.addAll(Arrays.asList(11, 1));
+                        default -> result.add(-1);
                     }
                     next = 0;
-                }
-                else {
+                } else {
                     next = 0;
                 }
             }
@@ -167,23 +122,22 @@ public class CommandHandler implements CommandExecutor {
         int next = 0;
         for (String argument : argumentArray) {
             if (count > 0) {
-                argument = argument.trim().toLowerCase(Locale.ROOT);
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
+                argument = argument.trim().toLowerCase(Locale.ROOT)
+                                   .replaceAll("\\\\", "")
+                                   .replaceAll("'", "");
 
                 if (argument.equals("position:") || argument.equals("location:") || argument.equals("c:") || argument.equals("coord:") || argument.equals("coords:") || argument.equals("cord:") || argument.equals("cords:") || argument.equals("coordinate:") || argument.equals("coordinates:") || argument.equals("cordinate:") || argument.equals("cordinates:")) {
                     next = 2;
-                }
-                else if (next == 2 || argument.startsWith("c:") || argument.startsWith("coord:") || argument.startsWith("coords:") || argument.startsWith("cord:") || argument.startsWith("cords:") || argument.startsWith("coordinate:") || argument.startsWith("coordinates:") || argument.startsWith("cordinate:") || argument.startsWith("cordinates:")) {
-                    argument = argument.replaceAll("coordinates:", "");
-                    argument = argument.replaceAll("coordinate:", "");
-                    argument = argument.replaceAll("cordinates:", "");
-                    argument = argument.replaceAll("cordinate:", "");
-                    argument = argument.replaceAll("coords:", "");
-                    argument = argument.replaceAll("coord:", "");
-                    argument = argument.replaceAll("cords:", "");
-                    argument = argument.replaceAll("cord:", "");
-                    argument = argument.replaceAll("c:", "");
+                } else if (next == 2 || argument.startsWith("c:") || argument.startsWith("coord:") || argument.startsWith("coords:") || argument.startsWith("cord:") || argument.startsWith("cords:") || argument.startsWith("coordinate:") || argument.startsWith("coordinates:") || argument.startsWith("cordinate:") || argument.startsWith("cordinates:")) {
+                    argument = argument.replaceAll("coordinates:", "")
+                                       .replaceAll("coordinate:", "")
+                                       .replaceAll("cordinates:", "")
+                                       .replaceAll("cordinate:", "")
+                                       .replaceAll("coords:", "")
+                                       .replaceAll("coord:", "")
+                                       .replaceAll("cords:", "")
+                                       .replaceAll("cord:", "")
+                                       .replaceAll("c:", "");
                     if (argument.contains(",")) {
                         String[] i2 = argument.split(",");
                         double x = 0.00;
@@ -194,15 +148,13 @@ public class CommandHandler implements CommandExecutor {
                             coord = coord.replaceAll("[^0-9.\\-]", "");
                             if (coord.length() > 0 && !coord.equals(".") && !coord.equals("-") && coord.indexOf('.') == coord.lastIndexOf('.')) {
                                 double parsedCoord = Double.parseDouble(coord);
-                                if (cCount == 0) {
-                                    x = parsedCoord;
-                                }
-                                else if (cCount == 1) {
-                                    z = parsedCoord;
-                                }
-                                else if (cCount == 2) {
-                                    y = z;
-                                    z = parsedCoord;
+                                switch (cCount) {
+                                    case 0 -> x = parsedCoord;
+                                    case 1 -> z = parsedCoord;
+                                    case 2 -> {
+                                        y = z;
+                                        z = parsedCoord;
+                                    }
                                 }
                                 cCount++;
                             }
@@ -216,10 +168,10 @@ public class CommandHandler implements CommandExecutor {
                                 int worldMinHeight = BukkitAdapter.ADAPTER.getMinHeight(location.getWorld());
 
                                 if (y < worldMinHeight) {
-                                    y = Double.valueOf(worldMinHeight);
+                                    y = worldMinHeight;
                                 }
                                 if (y > worldMaxHeight) {
-                                    y = Double.valueOf(worldMaxHeight);
+                                    y = worldMaxHeight;
                                 }
 
                                 location.setX(x);
@@ -229,8 +181,7 @@ public class CommandHandler implements CommandExecutor {
                         }
                     }
                     next = 0;
-                }
-                else {
+                } else {
                     next = 0;
                 }
             }
@@ -245,9 +196,9 @@ public class CommandHandler implements CommandExecutor {
         int count = 0;
         for (String argument : argumentArray) {
             if (count > 0) {
-                argument = argument.trim().toLowerCase(Locale.ROOT);
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
+                argument = argument.trim().toLowerCase(Locale.ROOT)
+                                   .replaceAll("\\\\", "")
+                                   .replaceAll("'", "");
                 if (argument.equals("#count") || argument.equals("#sum")) {
                     result = true;
                 }
@@ -264,16 +215,15 @@ public class CommandHandler implements CommandExecutor {
         int next = 0;
         for (String argument : argumentArray) {
             if (count > 0) {
-                argument = argument.trim().toLowerCase(Locale.ROOT);
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
+                argument = argument.trim().toLowerCase(Locale.ROOT)
+                                   .replaceAll("\\\\", "")
+                                   .replaceAll("'", "");
 
                 if (argument.equals("e:") || argument.equals("exclude:")) {
                     next = 5;
-                }
-                else if (next == 5 || argument.startsWith("e:") || argument.startsWith("exclude:")) {
-                    argument = argument.replaceAll("exclude:", "");
-                    argument = argument.replaceAll("e:", "");
+                } else if (next == 5 || argument.startsWith("e:") || argument.startsWith("exclude:")) {
+                    argument = argument.replaceAll("exclude:", "")
+                                       .replaceAll("e:", "");
                     if (argument.contains(",")) {
                         String[] i2 = argument.split(",");
                         for (String i3 : i2) {
@@ -281,45 +231,34 @@ public class CommandHandler implements CommandExecutor {
                                 Material i3_material = Util.getType(i3);
                                 if (i3_material != null && (i3_material.isBlock() || argAction.contains(4))) {
                                     excluded.put(i3_material, false);
-                                }
-                                else {
+                                } else {
                                     EntityType i3_entity = Util.getEntityType(i3);
                                     if (i3_entity != null) {
                                         excluded.put(i3_entity, false);
-                                    }
-                                    else if (i3_material != null) {
+                                    } else if (i3_material != null) {
                                         excluded.put(i3_material, false);
                                     }
                                 }
                             }
                         }
-                        if (argument.endsWith(",")) {
-                            next = 5;
-                        }
-                        else {
-                            next = 0;
-                        }
-                    }
-                    else {
+                        next = argument.endsWith(",") ? 5 : 0;
+                    } else {
                         if (!checkTags(argument, excluded)) {
                             Material iMaterial = Util.getType(argument);
                             if (iMaterial != null && (iMaterial.isBlock() || argAction.contains(4))) {
                                 excluded.put(iMaterial, false);
-                            }
-                            else {
+                            } else {
                                 EntityType iEntity = Util.getEntityType(argument);
                                 if (iEntity != null) {
                                     excluded.put(iEntity, false);
-                                }
-                                else if (iMaterial != null) {
+                                } else if (iMaterial != null) {
                                     excluded.put(iMaterial, false);
                                 }
                             }
                         }
                         next = 0;
                     }
-                }
-                else {
+                } else {
                     next = 0;
                 }
             }
@@ -335,29 +274,24 @@ public class CommandHandler implements CommandExecutor {
         int next = 0;
         for (String argument : argumentArray) {
             if (count > 0) {
-                argument = argument.trim().toLowerCase(Locale.ROOT);
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
+                argument = argument.trim().toLowerCase(Locale.ROOT)
+                                   .replaceAll("\\\\", "")
+                                   .replaceAll("'", "");
 
                 if (argument.equals("e:") || argument.equals("exclude:")) {
                     next = 5;
-                }
-                else if (next == 5 || argument.startsWith("e:") || argument.startsWith("exclude:")) {
-                    argument = argument.replaceAll("exclude:", "");
-                    argument = argument.replaceAll("e:", "");
+                } else if (next == 5 || argument.startsWith("e:") || argument.startsWith("exclude:")) {
+                    argument = argument.replaceAll("exclude:", "")
+                                       .replaceAll("e:", "");
                     if (argument.contains(",")) {
                         String[] i2 = argument.split(",");
                         for (String i3 : i2) {
-                            boolean isBlock = false;
-                            if (checkTags(i3)) {
-                                isBlock = true;
-                            }
-                            else {
+                            boolean isBlock = checkTags(i3);
+                            if (!isBlock) {
                                 Material i3_material = Util.getType(i3);
                                 if (i3_material != null) {
                                     isBlock = true;
-                                }
-                                else {
+                                } else {
                                     EntityType i3Entity = Util.getEntityType(i3);
                                     if (i3Entity != null) {
                                         isBlock = true;
@@ -368,24 +302,14 @@ public class CommandHandler implements CommandExecutor {
                                 excluded.add(i3);
                             }
                         }
-                        if (argument.endsWith(",")) {
-                            next = 5;
-                        }
-                        else {
-                            next = 0;
-                        }
-                    }
-                    else {
-                        boolean isBlock = false;
-                        if (checkTags(argument)) {
-                            isBlock = true;
-                        }
-                        else {
+                        next = argument.endsWith(",") ? 5 : 0;
+                    } else {
+                        boolean isBlock = checkTags(argument);
+                        if (!isBlock) {
                             Material iMaterial = Util.getType(argument);
                             if (iMaterial != null) {
                                 isBlock = true;
-                            }
-                            else {
+                            } else {
                                 EntityType entityType = Util.getEntityType(argument);
                                 if (entityType != null) {
                                     isBlock = true;
@@ -397,8 +321,7 @@ public class CommandHandler implements CommandExecutor {
                         }
                         next = 0;
                     }
-                }
-                else {
+                } else {
                     next = 0;
                 }
             }
@@ -414,28 +337,25 @@ public class CommandHandler implements CommandExecutor {
         int next = 0;
         for (String argument : argumentArray) {
             if (count > 0) {
-                argument = argument.trim().toLowerCase(Locale.ROOT);
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
+                argument = argument.trim().toLowerCase(Locale.ROOT)
+                                   .replaceAll("\\\\", "")
+                                   .replaceAll("'", "");
 
                 if (argument.equals("r:") || argument.equals("radius:")) {
                     next = 2;
-                }
-                else if (next == 2 || argument.startsWith("r:") || argument.startsWith("radius:")) {
-                    argument = argument.replaceAll("radius:", "");
-                    argument = argument.replaceAll("r:", "");
+                } else if (next == 2 || argument.startsWith("r:") || argument.startsWith("radius:")) {
+                    argument = argument.replaceAll("radius:", "")
+                                       .replaceAll("r:", "");
                     if (argument.equals("#global") || argument.equals("global") || argument.equals("off") || argument.equals("-1") || argument.equals("none") || argument.equals("false")) {
                         result = true;
-                    }
-                    else if (argument.startsWith("#")) {
+                    } else if (argument.startsWith("#")) {
                         int worldId = Util.matchWorld(argument);
                         if (worldId > 0) {
                             result = true;
                         }
                     }
                     next = 0;
-                }
-                else {
+                } else {
                     next = 0;
                 }
             }
@@ -448,8 +368,7 @@ public class CommandHandler implements CommandExecutor {
         Location location = null;
         if (user instanceof Player) {
             location = ((Player) user).getLocation();
-        }
-        else if (user instanceof BlockCommandSender) {
+        } else if (user instanceof BlockCommandSender) {
             location = ((BlockCommandSender) user).getBlock().getLocation();
         }
 
@@ -465,14 +384,13 @@ public class CommandHandler implements CommandExecutor {
         }
         for (String argument : argumentArray) {
             if (count > 0) {
-                argument = argument.trim().toLowerCase(Locale.ROOT);
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
+                argument = argument.trim().toLowerCase(Locale.ROOT)
+                                   .replaceAll("\\\\", "")
+                                   .replaceAll("'", "");
 
                 if (argument.equals("n") || argument.equals("noisy") || argument.equals("v") || argument.equals("verbose") || argument.equals("#v") || argument.equals("#verbose")) {
                     noisy = 1;
-                }
-                else if (argument.equals("#silent")) {
+                } else if (argument.equals("#silent")) {
                     noisy = 0;
                 }
             }
@@ -487,13 +405,12 @@ public class CommandHandler implements CommandExecutor {
         int count = 0;
         for (String argument : argumentArray) {
             if (count > 0) {
-                argument = argument.trim().toLowerCase(Locale.ROOT);
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
+                argument = argument.trim().toLowerCase(Locale.ROOT)
+                                   .replaceAll("\\\\", "")
+                                   .replaceAll("'", "");
                 if (argument.equals("#preview")) {
                     result = 1;
-                }
-                else if (argument.equals("#preview_cancel")) {
+                } else if (argument.equals("#preview_cancel")) {
                     result = 2;
                 }
             }
@@ -509,16 +426,15 @@ public class CommandHandler implements CommandExecutor {
         int next = 0;
         for (String argument : argumentArray) {
             if (count > 0) {
-                argument = argument.trim().toLowerCase(Locale.ROOT);
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
+                argument = argument.trim().toLowerCase(Locale.ROOT)
+                                   .replaceAll("\\\\", "")
+                                   .replaceAll("'", "");
 
                 if (argument.equals("r:") || argument.equals("radius:")) {
                     next = 2;
-                }
-                else if (next == 2 || argument.startsWith("r:") || argument.startsWith("radius:")) {
-                    argument = argument.replaceAll("radius:", "");
-                    argument = argument.replaceAll("r:", "");
+                } else if (next == 2 || argument.startsWith("r:") || argument.startsWith("radius:")) {
+                    argument = argument.replaceAll("radius:", "")
+                                       .replaceAll("r:", "");
                     if (argument.equals("#worldedit") || argument.equals("#we")) {
                         if (user.getServer().getPluginManager().getPlugin("WorldEdit") != null) {
                             Integer[] worldEditResult = WorldEditHandler.runWorldEditCommand(user);
@@ -526,11 +442,9 @@ public class CommandHandler implements CommandExecutor {
                                 radius = worldEditResult;
                             }
                         }
-                    }
-                    else if ((argument.startsWith("#") && argument.length() > 1) || argument.equals("global") || argument.equals("off") || argument.equals("-1") || argument.equals("none") || argument.equals("false")) {
+                    } else if ((argument.startsWith("#") && argument.length() > 1) || argument.equals("global") || argument.equals("off") || argument.equals("-1") || argument.equals("none") || argument.equals("false")) {
                         // radius = -2;
-                    }
-                    else {
+                    } else {
                         int rcount = 0;
                         int r_x = 0;
                         int r_y = -1;
@@ -544,15 +458,13 @@ public class CommandHandler implements CommandExecutor {
                             String i4 = value.replaceAll("[^0-9.]", "");
                             if (i4.length() > 0 && i4.length() == value.length() && i4.replaceAll("[^0-9]", "").length() > 0 && i4.indexOf('.') == i4.lastIndexOf('.')) {
                                 double a1 = Double.parseDouble(i4);
-                                if (rcount == 0) { // x
-                                    r_x = (int) a1;
-                                    r_z = (int) a1;
-                                }
-                                else if (rcount == 1) { // y
-                                    r_y = (int) a1;
-                                }
-                                else if (rcount == 2) { // z
-                                    r_z = (int) a1;
+                                switch (rcount) {
+                                    case 0 -> {
+                                        r_x = (int) a1;
+                                        r_z = (int) a1;
+                                    }
+                                    case 1 -> r_y = (int) a1;
+                                    case 2 -> r_z = (int) a1;
                                 }
                                 validRadius = true;
                             }
@@ -565,10 +477,6 @@ public class CommandHandler implements CommandExecutor {
                             Integer ymax = null;
                             Integer zmin = location.getBlockZ() - r_z;
                             Integer zmax = location.getBlockZ() + r_z;
-                            if (r_y > -1) {
-                                ymin = location.getBlockY() - r_y;
-                                ymax = location.getBlockY() + r_y;
-                            }
                             int max = r_x;
                             if (r_y > max) {
                                 max = r_y;
@@ -578,15 +486,13 @@ public class CommandHandler implements CommandExecutor {
                             }
                             if (validRadius) {
                                 radius = new Integer[] { max, xmin, xmax, ymin, ymax, zmin, zmax, 0 };
-                            }
-                            else {
+                            } else {
                                 radius = new Integer[] { -1 };
                             }
                         }
                     }
                     next = 0;
-                }
-                else {
+                } else {
                     next = 0;
                 }
             }
@@ -602,21 +508,20 @@ public class CommandHandler implements CommandExecutor {
         int next = 0;
         for (String argument : argumentArray) {
             if (count > 0) {
-                argument = argument.trim().toLowerCase(Locale.ROOT);
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
+                argument = argument.trim().toLowerCase(Locale.ROOT)
+                                   .replaceAll("\\\\", "")
+                                   .replaceAll("'", "");
 
                 if (argument.equals("i:") || argument.equals("include:") || argument.equals("item:") || argument.equals("items:") || argument.equals("b:") || argument.equals("block:") || argument.equals("blocks:")) {
                     next = 4;
-                }
-                else if (next == 4 || argument.startsWith("i:") || argument.startsWith("include:") || argument.startsWith("item:") || argument.startsWith("items:") || argument.startsWith("b:") || argument.startsWith("block:") || argument.startsWith("blocks:")) {
-                    argument = argument.replaceAll("include:", "");
-                    argument = argument.replaceAll("i:", "");
-                    argument = argument.replaceAll("items:", "");
-                    argument = argument.replaceAll("item:", "");
-                    argument = argument.replaceAll("blocks:", "");
-                    argument = argument.replaceAll("block:", "");
-                    argument = argument.replaceAll("b:", "");
+                } else if (next == 4 || argument.startsWith("i:") || argument.startsWith("include:") || argument.startsWith("item:") || argument.startsWith("items:") || argument.startsWith("b:") || argument.startsWith("block:") || argument.startsWith("blocks:")) {
+                    argument = argument.replaceAll("include:", "")
+                                       .replaceAll("i:", "")
+                                       .replaceAll("items:", "")
+                                       .replaceAll("item:", "")
+                                       .replaceAll("blocks:", "")
+                                       .replaceAll("block:", "")
+                                       .replaceAll("b:", "");
                     if (argument.contains(",")) {
                         String[] i2 = argument.split(",");
                         for (String i3 : i2) {
@@ -624,55 +529,36 @@ public class CommandHandler implements CommandExecutor {
                                 Material i3_material = Util.getType(i3);
                                 if (i3_material != null && (i3_material.isBlock() || argAction.contains(4))) {
                                     restricted.add(i3_material);
-                                }
-                                else {
+                                } else {
                                     EntityType i3_entity = Util.getEntityType(i3);
                                     if (i3_entity != null) {
                                         restricted.add(i3_entity);
-                                    }
-                                    else if (i3_material != null) {
-                                        restricted.add(i3_material);
-                                    }
-                                    else {
+                                    } else {
                                         Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.INVALID_INCLUDE, i3));
-                                        // Functions.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co help include"));
                                         return null;
                                     }
                                 }
                             }
                         }
-                        if (argument.endsWith(",")) {
-                            next = 4;
-                        }
-                        else {
-                            next = 0;
-                        }
-                    }
-                    else {
+                        next = argument.endsWith(",") ? 4 : 0;
+                    } else {
                         if (!checkTags(argument, restricted)) {
                             Material material = Util.getType(argument);
                             if (material != null && (material.isBlock() || argAction.contains(4))) {
                                 restricted.add(material);
-                            }
-                            else {
+                            } else {
                                 EntityType entityType = Util.getEntityType(argument);
                                 if (entityType != null) {
                                     restricted.add(entityType);
-                                }
-                                else if (material != null) {
-                                    restricted.add(material);
-                                }
-                                else {
+                                } else {
                                     Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.INVALID_INCLUDE, argument));
-                                    // Functions.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co help include"));
                                     return null;
                                 }
                             }
                         }
                         next = 0;
                     }
-                }
-                else {
+                } else {
                     next = 0;
                 }
             }
@@ -695,23 +581,21 @@ public class CommandHandler implements CommandExecutor {
         double s = 0;
         for (String argument : argumentArray) {
             if (count > 0) {
-                argument = argument.trim().toLowerCase(Locale.ROOT);
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
+                argument = argument.trim().toLowerCase(Locale.ROOT)
+                                   .replaceAll("\\\\", "")
+                                   .replaceAll("'", "");
 
                 if (argument.equals("t:") || argument.equals("time:")) {
                     next = 1;
-                }
-                else if (next == 1 || argument.startsWith("t:") || argument.startsWith("time:")) {
-                    // time arguments
-                    argument = argument.replaceAll("time:", "");
-                    argument = argument.replaceAll("t:", "");
-                    argument = argument.replaceAll("y", "y:");
-                    argument = argument.replaceAll("m", "m:");
-                    argument = argument.replaceAll("w", "w:");
-                    argument = argument.replaceAll("d", "d:");
-                    argument = argument.replaceAll("h", "h:");
-                    argument = argument.replaceAll("s", "s:");
+                } else if (next == 1 || argument.startsWith("t:") || argument.startsWith("time:")) {
+                    argument = argument.replaceAll("time:", "")
+                                       .replaceAll("t:", "")
+                                       .replaceAll("y", "y:")
+                                       .replaceAll("m", "m:")
+                                       .replaceAll("w", "w:")
+                                       .replaceAll("d", "d:")
+                                       .replaceAll("h", "h:")
+                                       .replaceAll("s", "s:");
                     range = argument.contains("-");
 
                     int argCount = 0;
@@ -731,26 +615,22 @@ public class CommandHandler implements CommandExecutor {
                             if (i4.length() > 0 && i4.replaceAll("[^0-9]", "").length() > 0 && i4.indexOf('.') == i4.lastIndexOf('.')) {
                                 w = Double.parseDouble(i4);
                             }
-                        }
-                        else if (i3.endsWith("d") && d == 0) {
+                        } else if (i3.endsWith("d") && d == 0) {
                             String i4 = i3.replaceAll("[^0-9.]", "");
                             if (i4.length() > 0 && i4.replaceAll("[^0-9]", "").length() > 0 && i4.indexOf('.') == i4.lastIndexOf('.')) {
                                 d = Double.parseDouble(i4);
                             }
-                        }
-                        else if (i3.endsWith("h") && h == 0) {
+                        } else if (i3.endsWith("h") && h == 0) {
                             String i4 = i3.replaceAll("[^0-9.]", "");
                             if (i4.length() > 0 && i4.replaceAll("[^0-9]", "").length() > 0 && i4.indexOf('.') == i4.lastIndexOf('.')) {
                                 h = Double.parseDouble(i4);
                             }
-                        }
-                        else if (i3.endsWith("m") && m == 0) {
+                        } else if (i3.endsWith("m") && m == 0) {
                             String i4 = i3.replaceAll("[^0-9.]", "");
                             if (i4.length() > 0 && i4.replaceAll("[^0-9]", "").length() > 0 && i4.indexOf('.') == i4.lastIndexOf('.')) {
                                 m = Double.parseDouble(i4);
                             }
-                        }
-                        else if (i3.endsWith("s") && s == 0) {
+                        } else if (i3.endsWith("s") && s == 0) {
                             String i4 = i3.replaceAll("[^0-9.]", "");
                             if (i4.length() > 0 && i4.replaceAll("[^0-9]", "").length() > 0 && i4.indexOf('.') == i4.lastIndexOf('.')) {
                                 s = Double.parseDouble(i4);
@@ -761,13 +641,11 @@ public class CommandHandler implements CommandExecutor {
                     }
                     if (timeStart > 0) {
                         timeEnd = (long) (((w * 7 * 24 * 60 * 60) + (d * 24 * 60 * 60) + (h * 60 * 60) + (m * 60) + s));
-                    }
-                    else {
+                    } else {
                         timeStart = (long) (((w * 7 * 24 * 60 * 60) + (d * 24 * 60 * 60) + (h * 60 * 60) + (m * 60) + s));
                     }
                     next = 0;
-                }
-                else {
+                } else {
                     next = 0;
                 }
             }
@@ -776,8 +654,7 @@ public class CommandHandler implements CommandExecutor {
 
         if (timeEnd >= timeStart) {
             return new long[] { timeEnd, timeStart };
-        }
-        else {
+        } else {
             return new long[] { timeStart, timeEnd };
         }
     }
@@ -792,41 +669,39 @@ public class CommandHandler implements CommandExecutor {
         int count = 0;
         int next = 0;
         boolean range = false;
-        BigDecimal w = new BigDecimal(0);
-        BigDecimal d = new BigDecimal(0);
-        BigDecimal h = new BigDecimal(0);
-        BigDecimal m = new BigDecimal(0);
-        BigDecimal s = new BigDecimal(0);
+        BigDecimal w = BigDecimal.ZERO;
+        BigDecimal d = BigDecimal.ZERO;
+        BigDecimal h = BigDecimal.ZERO;
+        BigDecimal m = BigDecimal.ZERO;
+        BigDecimal s = BigDecimal.ZERO;
         for (String argument : argumentArray) {
             if (count > 0) {
-                argument = argument.trim().toLowerCase(Locale.ROOT);
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
+                argument = argument.trim().toLowerCase(Locale.ROOT)
+                                   .replaceAll("\\\\", "")
+                                   .replaceAll("'", "");
 
                 if (argument.equals("t:") || argument.equals("time:")) {
                     next = 1;
-                }
-                else if (next == 1 || argument.startsWith("t:") || argument.startsWith("time:")) {
-                    // time arguments
-                    argument = argument.replaceAll("time:", "");
-                    argument = argument.replaceAll("t:", "");
-                    argument = argument.replaceAll("y", "y:");
-                    argument = argument.replaceAll("m", "m:");
-                    argument = argument.replaceAll("w", "w:");
-                    argument = argument.replaceAll("d", "d:");
-                    argument = argument.replaceAll("h", "h:");
-                    argument = argument.replaceAll("s", "s:");
+                } else if (next == 1 || argument.startsWith("t:") || argument.startsWith("time:")) {
+                    argument = argument.replaceAll("time:", "")
+                                       .replaceAll("t:", "")
+                                       .replaceAll("y", "y:")
+                                       .replaceAll("m", "m:")
+                                       .replaceAll("w", "w:")
+                                       .replaceAll("d", "d:")
+                                       .replaceAll("h", "h:")
+                                       .replaceAll("s", "s:");
                     range = argument.contains("-");
 
                     int argCount = 0;
                     String[] i2 = argument.split(":");
                     for (String i3 : i2) {
                         if (range && argCount > 0 && !time.contains("-") && i3.startsWith("-")) {
-                            w = new BigDecimal(0);
-                            d = new BigDecimal(0);
-                            h = new BigDecimal(0);
-                            m = new BigDecimal(0);
-                            s = new BigDecimal(0);
+                            w = BigDecimal.ZERO;
+                            d = BigDecimal.ZERO;
+                            h = BigDecimal.ZERO;
+                            m = BigDecimal.ZERO;
+                            s = BigDecimal.ZERO;
                             time = time + " -";
                         }
 
@@ -836,56 +711,47 @@ public class CommandHandler implements CommandExecutor {
                                 w = new BigDecimal(i4);
                                 if (range) {
                                     time = time + " " + timeString(w) + "w";
-                                }
-                                else {
+                                } else {
                                     time = time + " " + Phrase.build(Phrase.TIME_WEEKS, timeString(w), (w.doubleValue() == 1 ? Selector.FIRST : Selector.SECOND));
                                 }
                             }
-                        }
-                        else if (i3.endsWith("d") && d.intValue() == 0) {
+                        } else if (i3.endsWith("d") && d.intValue() == 0) {
                             String i4 = i3.replaceAll("[^0-9.]", "");
                             if (i4.length() > 0 && i4.replaceAll("[^0-9]", "").length() > 0 && i4.indexOf('.') == i4.lastIndexOf('.')) {
                                 d = new BigDecimal(i4);
                                 if (range) {
                                     time = time + " " + timeString(d) + "d";
-                                }
-                                else {
+                                } else {
                                     time = time + " " + Phrase.build(Phrase.TIME_DAYS, timeString(d), (d.doubleValue() == 1 ? Selector.FIRST : Selector.SECOND));
                                 }
                             }
-                        }
-                        else if (i3.endsWith("h") && h.intValue() == 0) {
+                        } else if (i3.endsWith("h") && h.intValue() == 0) {
                             String i4 = i3.replaceAll("[^0-9.]", "");
                             if (i4.length() > 0 && i4.replaceAll("[^0-9]", "").length() > 0 && i4.indexOf('.') == i4.lastIndexOf('.')) {
                                 h = new BigDecimal(i4);
                                 if (range) {
                                     time = time + " " + timeString(h) + "h";
-                                }
-                                else {
+                                } else {
                                     time = time + " " + Phrase.build(Phrase.TIME_HOURS, timeString(h), (h.doubleValue() == 1 ? Selector.FIRST : Selector.SECOND));
                                 }
                             }
-                        }
-                        else if (i3.endsWith("m") && m.intValue() == 0) {
+                        } else if (i3.endsWith("m") && m.intValue() == 0) {
                             String i4 = i3.replaceAll("[^0-9.]", "");
                             if (i4.length() > 0 && i4.replaceAll("[^0-9]", "").length() > 0 && i4.indexOf('.') == i4.lastIndexOf('.')) {
                                 m = new BigDecimal(i4);
                                 if (range) {
                                     time = time + " " + timeString(m) + "m";
-                                }
-                                else {
+                                } else {
                                     time = time + " " + Phrase.build(Phrase.TIME_MINUTES, timeString(m), (m.doubleValue() == 1 ? Selector.FIRST : Selector.SECOND));
                                 }
                             }
-                        }
-                        else if (i3.endsWith("s") && s.intValue() == 0) {
+                        } else if (i3.endsWith("s") && s.intValue() == 0) {
                             String i4 = i3.replaceAll("[^0-9.]", "");
                             if (i4.length() > 0 && i4.replaceAll("[^0-9]", "").length() > 0 && i4.indexOf('.') == i4.lastIndexOf('.')) {
                                 s = new BigDecimal(i4);
                                 if (range) {
                                     time = time + " " + timeString(s) + "s";
-                                }
-                                else {
+                                } else {
                                     time = time + " " + Phrase.build(Phrase.TIME_SECONDS, timeString(s), (s.doubleValue() == 1 ? Selector.FIRST : Selector.SECOND));
                                 }
                             }
@@ -893,17 +759,13 @@ public class CommandHandler implements CommandExecutor {
 
                         argCount++;
                     }
-                    next = 0;
-                }
-                else {
-                    next = 0;
+                    if (time.startsWith(" ")) {
+                        time = time.substring(1);
+                    }
+                    return time;
                 }
             }
             count++;
-        }
-
-        if (time.startsWith(" ")) {
-            time = time.substring(1);
         }
 
         return time;
@@ -917,14 +779,13 @@ public class CommandHandler implements CommandExecutor {
 
         for (String argument : argumentArray) {
             if (count > 0) {
-                argument = argument.trim().toLowerCase(Locale.ROOT);
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
+                argument = argument.trim().toLowerCase(Locale.ROOT)
+                                   .replaceAll("\\\\", "")
+                                   .replaceAll("'", "");
 
                 if (argument.equals("rows:")) {
                     next = 1;
-                }
-                else if (next == 1 || argument.startsWith("rows:")) {
+                } else if (next == 1 || argument.startsWith("rows:")) {
                     argument = argument.replaceAll("rows:", "").trim();
                     if (!argument.startsWith("-")) {
                         String i2 = argument.replaceAll("[^0-9]", "");
@@ -934,8 +795,7 @@ public class CommandHandler implements CommandExecutor {
                     }
 
                     next = 0;
-                }
-                else {
+                } else {
                     next = 0;
                 }
             }
@@ -952,8 +812,7 @@ public class CommandHandler implements CommandExecutor {
             for (String user : data) {
                 validUserCheck(users, user);
             }
-        }
-        else {
+        } else {
             validUserCheck(users, string);
         }
     }
@@ -965,50 +824,38 @@ public class CommandHandler implements CommandExecutor {
         int next = 0;
         for (String argument : argumentArray) {
             if (count > 0) {
-                argument = argument.trim().toLowerCase(Locale.ROOT);
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
+                argument = argument.trim().toLowerCase(Locale.ROOT)
+                                   .replaceAll("\\\\", "")
+                                   .replaceAll("'", "");
 
                 if (next == 2) {
                     if (argument.endsWith(",")) {
                         next = 2;
-                    }
-                    else {
+                    } else {
                         next = 0;
                     }
-                }
-                else if (argument.equals("p:") || argument.equals("user:") || argument.equals("users:") || argument.equals("u:")) {
+                } else if (argument.equals("p:") || argument.equals("user:") || argument.equals("users:") || argument.equals("u:")) {
                     next = 1;
-                }
-                else if (next == 1 || argument.startsWith("p:") || argument.startsWith("user:") || argument.startsWith("users:") || argument.startsWith("u:")) {
-                    argument = argument.replaceAll("user:", "");
-                    argument = argument.replaceAll("users:", "");
-                    argument = argument.replaceAll("p:", "");
-                    argument = argument.replaceAll("u:", "");
+                } else if (next == 1 || argument.startsWith("p:") || argument.startsWith("user:") || argument.startsWith("users:") || argument.startsWith("u:")) {
+                    argument = argument.replaceAll("user:", "")
+                                       .replaceAll("users:", "")
+                                       .replaceAll("p:", "")
+                                       .replaceAll("u:", "");
                     if (argument.contains(",")) {
                         String[] i2 = argument.split(",");
                         for (String i3 : i2) {
                             parseUser(users, i3);
                         }
-                        if (argument.endsWith(",")) {
-                            next = 1;
-                        }
-                        else {
-                            next = 0;
-                        }
-                    }
-                    else {
+                        next = argument.endsWith(",") ? 1 : 0;
+                    } else {
                         parseUser(users, argument);
                         next = 0;
                     }
-                }
-                else if (argument.endsWith(",") || argument.endsWith(":")) {
+                } else if (argument.endsWith(",") || argument.endsWith(":")) {
                     next = 2;
-                }
-                else if (argument.contains(":")) {
+                } else if (argument.contains(":")) {
                     next = 0;
-                }
-                else {
+                } else {
                     parseUser(users, argument);
                     next = 0;
                 }
@@ -1025,287 +872,7 @@ public class CommandHandler implements CommandExecutor {
         int next = 0;
         for (String argument : argumentArray) {
             if (count > 0) {
-                argument = argument.trim();
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
+                argument = argument.trim()
+                                   .replaceAll("\\\\", "")
+                                   .replaceAll("'", "");
 
-                String inputProcessed = argument.toLowerCase(Locale.ROOT);
-                if (inputProcessed.equals("r:") || inputProcessed.equals("radius:")) {
-                    next = 2;
-                }
-                else if (next == 2 || inputProcessed.startsWith("r:") || inputProcessed.startsWith("radius:")) {
-                    argument = argument.replaceAll("radius:", "").replaceAll("r:", "");
-                    inputProcessed = argument.toLowerCase(Locale.ROOT);
-                    if ((processWorldEdit && (inputProcessed.equals("#worldedit") || inputProcessed.equals("#we"))) || inputProcessed.equals("#global") || inputProcessed.equals("global") || inputProcessed.equals("off") || inputProcessed.equals("-1") || inputProcessed.equals("none") || inputProcessed.equals("false")) {
-                        world_id = 0;
-                    }
-                    else if (inputProcessed.startsWith("#")) {
-                        world_id = Util.matchWorld(inputProcessed);
-                        if (world_id == -1 && !requireLoaded) {
-                            world_id = ConfigHandler.worlds.getOrDefault(argument.replaceFirst("#", ""), -1);
-                        }
-                    }
-                    next = 0;
-                }
-                else {
-                    next = 0;
-                }
-            }
-            count++;
-        }
-        return world_id;
-    }
-
-    protected static boolean parseWorldEdit(String[] inputArguments) {
-        String[] argumentArray = inputArguments.clone();
-        boolean result = false;
-        int count = 0;
-        int next = 0;
-        for (String argument : argumentArray) {
-            if (count > 0) {
-                argument = argument.trim().toLowerCase(Locale.ROOT);
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
-
-                if (argument.equals("r:") || argument.equals("radius:")) {
-                    next = 2;
-                }
-                else if (next == 2 || argument.startsWith("r:") || argument.startsWith("radius:")) {
-                    argument = argument.replaceAll("radius:", "");
-                    argument = argument.replaceAll("r:", "");
-                    if (argument.equals("#worldedit") || argument.equals("#we")) {
-                        result = true;
-                    }
-                    next = 0;
-                }
-                else {
-                    next = 0;
-                }
-            }
-            count++;
-        }
-        return result;
-    }
-
-    protected static String parseWorldName(String[] inputArguments, boolean processWorldEdit) {
-        String[] argumentArray = inputArguments.clone();
-        String worldName = "";
-        int count = 0;
-        int next = 0;
-        for (String argument : argumentArray) {
-            if (count > 0) {
-                argument = argument.trim().toLowerCase(Locale.ROOT);
-                argument = argument.replaceAll("\\\\", "");
-                argument = argument.replaceAll("'", "");
-
-                if (argument.equals("r:") || argument.equals("radius:")) {
-                    next = 2;
-                }
-                else if (next == 2 || argument.startsWith("r:") || argument.startsWith("radius:")) {
-                    argument = argument.replaceAll("radius:", "");
-                    argument = argument.replaceAll("r:", "");
-                    if ((processWorldEdit && (argument.equals("#worldedit") || argument.equals("#we"))) || argument.equals("#global") || argument.equals("global") || argument.equals("off") || argument.equals("-1") || argument.equals("none") || argument.equals("false")) {
-                        worldName = "";
-                    }
-                    else if (argument.startsWith("#")) {
-                        worldName = argument.replaceFirst("#", "");
-                    }
-                    next = 0;
-                }
-                else {
-                    next = 0;
-                }
-            }
-            count++;
-        }
-        return worldName;
-    }
-
-    protected static Map<String, Set<Material>> getTags() {
-        Map<String, Set<Material>> tagMap = new HashMap<>();
-        tagMap.put("#button", BlockGroup.BUTTONS);
-        tagMap.put("#container", BlockGroup.CONTAINERS);
-        tagMap.put("#door", BlockGroup.DOORS);
-        tagMap.put("#natural", BlockGroup.NATURAL_BLOCKS);
-        tagMap.put("#pressure_plate", BlockGroup.PRESSURE_PLATES);
-        tagMap.put("#shulker_box", BlockGroup.SHULKER_BOXES);
-        return tagMap;
-    }
-
-    protected static boolean checkTags(String argument) {
-        return getTags().containsKey(argument);
-    }
-
-    protected static boolean checkTags(String argument, Map<Object, Boolean> list) {
-        for (Entry<String, Set<Material>> entry : getTags().entrySet()) {
-            String tag = entry.getKey();
-            Set<Material> materials = entry.getValue();
-
-            if (argument.equals(tag)) {
-                for (Material block : materials) {
-                    list.put(block, false);
-                }
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    protected static boolean checkTags(String argument, List<Object> list) {
-        for (Entry<String, Set<Material>> entry : getTags().entrySet()) {
-            String tag = entry.getKey();
-            Set<Material> materials = entry.getValue();
-
-            if (argument.equals(tag)) {
-                list.addAll(materials);
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static void validUserCheck(List<String> users, String user) {
-        List<String> badUsers = Arrays.asList("n", "noisy", "v", "verbose", "#v", "#verbose", "#silent", "#preview", "#preview_cancel", "#count", "#sum");
-        String check = user.replaceAll("[\\s'\"]", "");
-        if (check.equals(user) && check.length() > 0) {
-            if (user.equalsIgnoreCase("#global")) {
-                user = "#global";
-            }
-            if (!badUsers.contains(user.toLowerCase(Locale.ROOT))) {
-                users.add(user);
-            }
-        }
-    }
-
-    @Override
-    public boolean onCommand(CommandSender user, Command command, String commandLabel, String[] argumentArray) {
-        String commandName = command.getName().toLowerCase(Locale.ROOT);
-
-        if (commandName.equals("core") || commandName.equals("coreprotect") || commandName.equals("co")) {
-            int resultc = argumentArray.length;
-            if (resultc > -1) {
-                String corecommand = "help";
-                if (resultc > 0) {
-                    corecommand = argumentArray[0].toLowerCase(Locale.ROOT);
-                }
-                boolean permission = false;
-                if (!permission) {
-                    if (user.hasPermission("coreprotect.rollback") && (corecommand.equals("rollback") || corecommand.equals("rb") || corecommand.equals("ro") || corecommand.equals("apply") || corecommand.equals("cancel"))) {
-                        permission = true;
-                    }
-                    else if (user.hasPermission("coreprotect.restore") && (corecommand.equals("restore") || corecommand.equals("rs") || corecommand.equals("re") || corecommand.equals("undo") || corecommand.equals("apply") || corecommand.equals("cancel"))) {
-                        permission = true;
-                    }
-                    else if (user.hasPermission("coreprotect.inspect") && (corecommand.equals("i") || corecommand.equals("inspect") || corecommand.equals("inspector"))) {
-                        permission = true;
-                    }
-                    else if (user.hasPermission("coreprotect.help") && corecommand.equals("help")) {
-                        permission = true;
-                    }
-                    else if (user.hasPermission("coreprotect.purge") && corecommand.equals("purge")) {
-                        permission = true;
-                    }
-                    else if (user.hasPermission("coreprotect.lookup") && (corecommand.equals("l") || corecommand.equals("lookup") || corecommand.equals("page") || corecommand.equals("near"))) {
-                        permission = true;
-                    }
-                    else if (user.hasPermission("coreprotect.lookup.near") && corecommand.equals("near")) {
-                        permission = true;
-                    }
-                    else if (user.hasPermission("coreprotect.teleport") && (corecommand.equals("tp") || corecommand.equals("teleport"))) {
-                        permission = true;
-                    }
-                    else if (user.hasPermission("coreprotect.reload") && corecommand.equals("reload")) {
-                        permission = true;
-                    }
-                    else if (user.hasPermission("coreprotect.status") && (corecommand.equals("status") || corecommand.equals("stats") || corecommand.equals("version"))) {
-                        permission = true;
-                    }
-                    else if (user.hasPermission("coreprotect.consumer") && corecommand.equals("consumer")) {
-                        permission = true;
-                    }
-                    else if (user.hasPermission("coreprotect.networking") && corecommand.equals("network-debug")) {
-                        permission = true;
-                    }
-                }
-
-                if (corecommand.equals("rollback") || corecommand.equals("restore") || corecommand.equals("rb") || corecommand.equals("rs") || corecommand.equals("ro") || corecommand.equals("re")) {
-                    RollbackRestoreCommand.runCommand(user, command, permission, argumentArray, null, 0, 0);
-                }
-                else if (corecommand.equals("apply")) {
-                    ApplyCommand.runCommand(user, command, permission, argumentArray);
-                }
-                else if (corecommand.equals("cancel")) {
-                    CancelCommand.runCommand(user, command, permission, argumentArray);
-                }
-                else if (corecommand.equals("undo")) {
-                    UndoCommand.runCommand(user, command, permission, argumentArray);
-                }
-                else if (corecommand.equals("help")) {
-                    HelpCommand.runCommand(user, permission, argumentArray);
-                }
-                else if (corecommand.equals("purge")) {
-                    PurgeCommand.runCommand(user, permission, argumentArray);
-                }
-                else if (corecommand.equals("inspect") || corecommand.equals("i")) {
-                    InspectCommand.runCommand(user, permission, argumentArray);
-                }
-                else if (corecommand.equals("lookup") || corecommand.equals("l") || corecommand.equals("page")) {
-                    LookupCommand.runCommand(user, command, permission, argumentArray);
-                }
-                else if (corecommand.equals("near")) {
-                    LookupCommand.runCommand(user, command, permission, new String[] { "near", "r:5x5" });
-                }
-                else if (corecommand.equals("teleport") || corecommand.equals("tp")) {
-                    TeleportCommand.runCommand(user, permission, argumentArray);
-                }
-                else if (corecommand.equals("status") || corecommand.equals("stats") || corecommand.equals("version")) {
-                    StatusCommand.runCommand(user, permission, argumentArray);
-                }
-                else if (corecommand.equals("reload")) {
-                    ReloadCommand.runCommand(user, permission, argumentArray);
-                }
-                else if (corecommand.equals("consumer")) {
-                    ConsumerCommand.runCommand(user, permission, argumentArray);
-                }
-                else if (corecommand.equals("network-debug")) {
-                    NetworkDebugCommand.runCommand(user, permission, argumentArray);
-                }
-                else {
-                    Chat.sendMessage(user, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.COMMAND_NOT_FOUND, Color.WHITE, "/co " + corecommand));
-                }
-            }
-            else {
-                Chat.sendMessage(user, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.MISSING_PARAMETERS, Color.WHITE, "/co <parameters>"));
-            }
-
-            if (user.isOp() && versionAlert.get(user.getName()) == null) {
-                String latestVersion = NetworkHandler.latestVersion();
-                if (latestVersion != null) {
-                    versionAlert.put(user.getName(), true);
-                    class updateAlert implements Runnable {
-                        @Override
-                        public void run() {
-                            try {
-                                Thread.sleep(5000);
-                                Chat.sendMessage(user, Color.WHITE + "----- " + Color.DARK_AQUA + Phrase.build(Phrase.UPDATE_HEADER, "CoreProtect") + Color.WHITE + " -----");
-                                Chat.sendMessage(user, Color.DARK_AQUA + Phrase.build(Phrase.UPDATE_NOTICE, Color.WHITE, "CoreProtect v" + latestVersion));
-                                Chat.sendMessage(user, Color.DARK_AQUA + Phrase.build(Phrase.LINK_DOWNLOAD, Color.WHITE, "www.coreprotect.net/download/"));
-                            }
-                            catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                    (new Thread(new updateAlert())).start();
-                }
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-}

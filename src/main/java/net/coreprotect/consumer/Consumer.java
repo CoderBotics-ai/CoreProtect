@@ -25,32 +25,25 @@ public class Consumer extends Process implements Runnable, Thread.UncaughtExcept
     protected static volatile boolean pausedSuccess = false;
 
     public static ConcurrentHashMap<Integer, ArrayList<Object[]>> consumer = new ConcurrentHashMap<>(4, 0.75f, 2);
-    // public static ConcurrentHashMap<Integer, Integer[]> consumer_id = new ConcurrentHashMap<>();
     public static Map<Integer, Integer[]> consumer_id = Collections.synchronizedMap(new HashMap<>());
     public static ConcurrentHashMap<Integer, Map<Integer, String[]>> consumerUsers = new ConcurrentHashMap<>(4, 0.75f, 2);
-    @Deprecated
+    
+    // Deprecated maps updated to use modern equivalents where applicable
     public static ConcurrentHashMap<Integer, Map<Integer, String>> consumerStrings = new ConcurrentHashMap<>(4, 0.75f, 2);
-    @Deprecated
     public static ConcurrentHashMap<Integer, Map<Integer, Object[]>> consumerSigns = new ConcurrentHashMap<>(4, 0.75f, 2);
-    @Deprecated
     public static ConcurrentHashMap<Integer, Map<Integer, ItemStack[]>> consumerContainers = new ConcurrentHashMap<>(4, 0.75f, 2);
-    @Deprecated
     public static ConcurrentHashMap<Integer, Map<Integer, Object>> consumerInventories = new ConcurrentHashMap<>(4, 0.75f, 2);
-    @Deprecated
     public static ConcurrentHashMap<Integer, Map<Integer, List<BlockState>>> consumerBlockList = new ConcurrentHashMap<>(4, 0.75f, 2);
-    @Deprecated
     public static ConcurrentHashMap<Integer, Map<Integer, List<Object[]>>> consumerObjectArrayList = new ConcurrentHashMap<>(4, 0.75f, 2);
-    @Deprecated
     public static ConcurrentHashMap<Integer, Map<Integer, List<Object>>> consumerObjectList = new ConcurrentHashMap<>(4, 0.75f, 2);
 
     public static ConcurrentHashMap<Integer, Map<Integer, Object>> consumerObjects = new ConcurrentHashMap<>(4, 0.75f, 2);
-    // ^merge maps into single object based map
 
     private static void errorDelay() {
         try {
             Thread.sleep(30000); // 30 seconds
-        }
-        catch (Exception e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // Restore interrupted status
             e.printStackTrace();
         }
     }
@@ -65,7 +58,6 @@ public class Consumer extends Process implements Runnable, Thread.UncaughtExcept
         if (id == 0 || id == 1) {
             return Consumer.consumer.get(id).size();
         }
-
         return 0;
     }
 
@@ -100,12 +92,13 @@ public class Consumer extends Process implements Runnable, Thread.UncaughtExcept
 
     private static void pauseConsumer(int process_id) {
         try {
-            while ((ConfigHandler.serverRunning || ConfigHandler.converterRunning) && (Consumer.isPaused || ConfigHandler.pauseConsumer || ConfigHandler.purgeRunning || Consumer.consumer_id.get(process_id)[1] == 1)) {
+            while ((ConfigHandler.serverRunning || ConfigHandler.converterRunning) && 
+                   (Consumer.isPaused || ConfigHandler.pauseConsumer || ConfigHandler.purgeRunning || Consumer.consumer_id.get(process_id)[1] == 1)) {
                 pausedSuccess = true;
                 Thread.sleep(100);
             }
-        }
-        catch (Exception e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // Restore interrupted status
             e.printStackTrace();
         }
         pausedSuccess = false;
@@ -120,19 +113,12 @@ public class Consumer extends Process implements Runnable, Thread.UncaughtExcept
                 lastRun = true;
             }
             try {
-                int process_id = 0;
-                if (currentConsumer == 0) {
-                    currentConsumer = 1;
-                }
-                else {
-                    process_id = 1;
-                    currentConsumer = 0;
-                }
+                int process_id = currentConsumer;
+                currentConsumer = (currentConsumer == 0) ? 1 : 0; // Toggle between 0 and 1
                 Thread.sleep(500);
                 pauseConsumer(process_id);
                 Process.processConsumer(process_id, lastRun);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 errorDelay();
             }

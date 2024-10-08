@@ -7,14 +7,14 @@ public class ChatMessage {
     /**
      * Returns the plugin name with the DARK_AQUA chat color.
      */
-    String pluginName = Color.DARK_AQUA + "CoreProtect";
+    private final String pluginName = Color.DARK_AQUA + "CoreProtect";
 
-    String message;
-    String textColor = Color.WHITE;
-    String textStyle = "";
-    String separator = "-";
-    boolean useTag = true;
-    boolean useSpaces = true;
+    private String message;
+    private String textColor = Color.WHITE;
+    private String textStyle = "";
+    private String separator = "-";
+    private boolean useTag = true;
+    private boolean useSpaces = true;
 
     public ChatMessage() {
         this.message = "";
@@ -46,13 +46,12 @@ public class ChatMessage {
     }
 
     public ChatMessage append(String color, String string) {
-        this.message = this.message + color + string;
+        this.message += color + string; // Using += for better readability
         return this;
     }
 
     public ChatMessage(String string) {
         this.message = parseQuotes(string, this.textColor);
-        // this.message = Chat.COREPROTECT + this.textStyle + this.textColor + " - " + string;
     }
 
     public String build(boolean tag) {
@@ -110,22 +109,17 @@ public class ChatMessage {
         return string;
     }
 
-    private static String createSpaces(String string, boolean seperatorOffset, boolean createSpaces) {
-        String result = "";
+    private static String createSpaces(String string, boolean separatorOffset, boolean createSpaces) {
         if (!createSpaces) {
-            return result;
+            return "";
         }
 
         int count = (string.length() - string.replace(String.valueOf(ChatColor.COLOR_CHAR), "").length()) * 2;
         int length = (int) ((string.length() - count) * 1.4);
-        if (seperatorOffset) {
+        if (separatorOffset) {
             length += 2;
         }
-        for (int i = 0; i < length; i++) {
-            result += " ";
-        }
-
-        return result;
+        return " ".repeat(length); // Using String.repeat for better readability
     }
 
     public String build() {
@@ -136,5 +130,4 @@ public class ChatMessage {
     public String toString() {
         return this.message;
     }
-
 }

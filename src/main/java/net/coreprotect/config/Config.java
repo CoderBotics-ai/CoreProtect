@@ -12,7 +12,6 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
@@ -28,10 +27,10 @@ public class Config extends Language {
     private static final Map<String, String> DEFAULT_VALUES = new LinkedHashMap<>();
     private static final Map<String, Config> CONFIG_BY_WORLD_NAME = new HashMap<>();
     private static final String DEFAULT_FILE_HEADER = "# CoreProtect Config";
-    public static final String LINE_SEPARATOR = "\n";
+    public static final String LINE_SEPARATOR = System.lineSeparator();
 
     private static final Config GLOBAL = new Config();
-    private final HashMap<String, String> config;
+    private final Map<String, String> config; // Changed to Map for better interface
     private Config defaults;
 
     public String DONATION_KEY;
@@ -146,8 +145,8 @@ public class Config extends Language {
         HEADERS.put("donation-key", new String[] { "# CoreProtect is donationware. Obtain a donation key from coreprotect.net/donate/" });
         HEADERS.put("use-mysql", new String[] { "# MySQL is optional and not required.", "# If you prefer to use MySQL, enable the following and fill out the fields." });
         HEADERS.put("language", new String[] { "# If modified, will automatically attempt to translate languages phrases.", "# List of language codes: https://coreprotect.net/languages/" });
-        HEADERS.put("check-updates", new String[] { "# If enabled, CoreProtect will check for updates when your server starts up.", "# If an update is available, you'll be notified via your server console.", });
-        HEADERS.put("api-enabled", new String[] { "# If enabled, other plugins will be able to utilize the CoreProtect API.", });
+        HEADERS.put("check-updates", new String[] { "# If enabled, CoreProtect will check for updates when your server starts up.", "# If an update is available, you'll be notified via your server console." });
+        HEADERS.put("api-enabled", new String[] { "# If enabled, other plugins will be able to utilize the CoreProtect API." });
         HEADERS.put("verbose", new String[] { "# If enabled, extra data is displayed during rollbacks and restores.", "# Can be manually triggered by adding \"#verbose\" to your rollback command." });
         HEADERS.put("default-radius", new String[] { "# If no radius is specified in a rollback or restore, this value will be", "# used as the radius. Set to \"0\" to disable automatically adding a radius." });
         HEADERS.put("max-radius", new String[] { "# The maximum radius that can be used in a command. Set to \"0\" to disable.", "# To run a rollback or restore without a radius, you can use \"r:#global\"." });
@@ -263,12 +262,7 @@ public class Config extends Language {
     }
 
     public static Config getConfig(final String worldName) {
-        Config ret = CONFIG_BY_WORLD_NAME.get(worldName);
-        if (ret == null) {
-            ret = CONFIG_BY_WORLD_NAME.getOrDefault(worldName, GLOBAL);
-            CONFIG_BY_WORLD_NAME.put(worldName, ret);
-        }
-        return ret;
+        return CONFIG_BY_WORLD_NAME.computeIfAbsent(worldName, k -> GLOBAL);
     }
 
     public Config() {
@@ -287,8 +281,7 @@ public class Config extends Language {
             }
             if (this.defaults == null) {
                 configured = DEFAULT_VALUES.get(key);
-            }
-            else {
+            } else {
                 configured = this.defaults.config.getOrDefault(key, DEFAULT_VALUES.get(key));
             }
         }
@@ -365,8 +358,7 @@ public class Config extends Language {
             final Config temp = new Config();
             temp.load(new ByteArrayInputStream(data));
             temp.addMissingOptions(globalFile);
-        }
-        else {
+        } else {
             final Config temp = new Config();
             temp.loadDefaults();
             temp.addMissingOptions(globalFile);
@@ -394,8 +386,7 @@ public class Config extends Language {
             Scheduler.runTask(CoreProtect.getInstance(), () -> {
                 try {
                     parseConfig(data);
-                }
-                catch (final Throwable thr) {
+                } catch (final Throwable thr) {
                     if (thr instanceof ThreadDeath) {
                         throw (ThreadDeath) thr;
                     }
@@ -416,12 +407,10 @@ public class Config extends Language {
         if (defaultData != null) {
             try {
                 GLOBAL.load(new ByteArrayInputStream(defaultData));
-            }
-            catch (final IOException ex) {
+            } catch (final IOException ex) {
                 throw new RuntimeException(ex); // shouldn't happen
             }
-        }
-        else {
+        } else {
             GLOBAL.loadDefaults();
         }
 
@@ -437,8 +426,7 @@ public class Config extends Language {
 
             try {
                 config.load(new ByteArrayInputStream(fileData));
-            }
-            catch (final IOException ex) {
+            } catch (final IOException ex) {
                 throw new RuntimeException(ex); // shouldn't happen
             }
 
@@ -448,8 +436,8 @@ public class Config extends Language {
 
     public void addMissingOptions(final File file) throws IOException {
         final boolean writeHeader = !file.exists() || file.length() == 0;
-        try (final FileOutputStream fout = new FileOutputStream(file, true)) {
-            OutputStreamWriter out = new OutputStreamWriter(new BufferedOutputStream(fout), StandardCharsets.UTF_8);
+        try (final FileOutputStream fout = new FileOutputStream(file, true);
+             OutputStreamWriter out = new OutputStreamWriter(new BufferedOutputStream(fout), StandardCharsets.UTF_8)) {
             if (writeHeader) {
                 out.append(DEFAULT_FILE_HEADER);
                 out.append(LINE_SEPARATOR);
@@ -480,8 +468,6 @@ public class Config extends Language {
                 out.append(defaultValue);
                 out.append(LINE_SEPARATOR);
             }
-
-            out.close();
         }
     }
 }
