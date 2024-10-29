@@ -44,7 +44,7 @@ public final class CoreProtect extends JavaPlugin {
         return instance;
     }
 
-    private CoreProtectAPI api = new CoreProtectAPI();
+    private final CoreProtectAPI api = new CoreProtectAPI();
 
     /**
      * Get the CoreProtect API
@@ -78,8 +78,7 @@ public final class CoreProtect extends JavaPlugin {
                     new File(ConfigHandler.path).mkdir();
                 }
                 start = ConfigHandler.performInitialization(true); // Perform any necessary initialization
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 start = false;
             }
@@ -90,8 +89,7 @@ public final class CoreProtect extends JavaPlugin {
             Util.sendConsoleComponentStartup(Bukkit.getServer().getConsoleSender(), Phrase.build(Phrase.ENABLE_SUCCESS, ConfigHandler.EDITION_NAME));
             if (Config.getGlobal().MYSQL) {
                 Chat.console(Phrase.build(Phrase.USING_MYSQL));
-            }
-            else {
+            } else {
                 Chat.console(Phrase.build(Phrase.USING_SQLITE));
             }
 
@@ -104,8 +102,7 @@ public final class CoreProtect extends JavaPlugin {
                 try {
                     Thread networkHandler = new Thread(new NetworkHandler(true, true));
                     networkHandler.start();
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }, 0);
@@ -118,12 +115,10 @@ public final class CoreProtect extends JavaPlugin {
             // Enabling bStats
             try {
                 new MetricsLite(this, 2876);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 // Failed to connect to bStats server or something else went wrong.
             }
-        }
-        else {
+        } else {
             Chat.console(Phrase.build(Phrase.ENABLE_FAILED, ConfigHandler.EDITION_NAME));
             getServer().getPluginManager().disablePlugin(this);
         }
@@ -147,7 +142,7 @@ public final class CoreProtect extends JavaPlugin {
                 return false;
             }
 
-            if (ConfigHandler.EDITION_BRANCH.length() == 0) {
+            if (ConfigHandler.EDITION_BRANCH.isEmpty()) {
                 Chat.sendConsoleMessage(Color.RED + "[CoreProtect] " + Phrase.build(Phrase.INVALID_BRANCH_1));
                 Chat.sendConsoleMessage(Color.GREY + "[CoreProtect] " + Phrase.build(Phrase.INVALID_BRANCH_2));
                 Chat.sendConsoleMessage(Color.GREY + "[CoreProtect] " + Phrase.build(Phrase.INVALID_BRANCH_3));
@@ -155,8 +150,7 @@ public final class CoreProtect extends JavaPlugin {
             }
 
             ConfigHandler.SERVER_VERSION = Integer.parseInt(bukkitVersion[1]);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
@@ -187,8 +181,7 @@ public final class CoreProtect extends JavaPlugin {
             long alertTime = shutdownTime + (10 * 1000);
             if (ConfigHandler.converterRunning) {
                 Chat.console(Phrase.build(Phrase.FINISHING_CONVERSION));
-            }
-            else {
+            } else {
                 Chat.console(Phrase.build(Phrase.FINISHING_LOGGING));
             }
 
@@ -200,13 +193,11 @@ public final class CoreProtect extends JavaPlugin {
                         int consumerCount = Consumer.getConsumerSize(consumerId) + Process.getCurrentConsumerSize();
                         Chat.console(Phrase.build(Phrase.LOGGING_ITEMS, String.format("%,d", consumerCount)));
                     }
-                    alertTime = alertTime + (30 * 1000);
-                }
-                else if (!ConfigHandler.databaseReachable && (time - shutdownTime) >= (5 * 60 * 1000)) {
+                    alertTime += (30 * 1000);
+                } else if (!ConfigHandler.databaseReachable && (time - shutdownTime) >= (5 * 60 * 1000)) {
                     Chat.console(Phrase.build(Phrase.DATABASE_UNREACHABLE));
                     break;
-                }
-                else if ((time - shutdownTime) >= (15 * 60 * 1000)) {
+                } else if ((time - shutdownTime) >= (15 * 60 * 1000)) {
                     Chat.console(Phrase.build(Phrase.LOGGING_TIME_LIMIT));
                     break;
                 }
@@ -216,10 +207,8 @@ public final class CoreProtect extends JavaPlugin {
 
             ConfigHandler.performDisable();
             Chat.console(Phrase.build(Phrase.DISABLE_SUCCESS, "CoreProtect v" + plugin.getDescription().getVersion()));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
 }

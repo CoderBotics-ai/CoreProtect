@@ -97,8 +97,7 @@ public class Util extends Queue {
             String[] versionSplit = pluginVersion.split("\\.");
             minor = Integer.parseInt(versionSplit[0]);
             revision = Integer.parseInt(versionSplit[1]);
-        }
-        else {
+        } else {
             minor = Integer.parseInt(pluginVersion);
         }
 
@@ -109,8 +108,11 @@ public class Util extends Queue {
         String name = CoreProtect.getInstance().getDescription().getName();
         String branch = ConfigHandler.EDITION_BRANCH;
 
-        if (branch.startsWith("-edge")) {
-            name = name + " " + branch.substring(1, 2).toUpperCase() + branch.substring(2, 5);
+        if (branch.startsWith("-")) {
+            branch = branch.substring(1);
+        }
+        if (!branch.isEmpty()) {
+            name += " " + branch.substring(0, 1).toUpperCase() + branch.substring(1);
         }
 
         return name;
@@ -121,8 +123,7 @@ public class Util extends Queue {
         try {
             Configurator.setLevel("com.profesorfalken.jsensors.manager.unix.UnixSensorsManager", Level.OFF);
             result = HardwareInfo.getProcessorInfo();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             // unable to read processor information
         }
 
@@ -141,15 +142,15 @@ public class Util extends Queue {
 
         StringBuilder worldDisplay = new StringBuilder();
         if (displayWorld) {
-            worldDisplay.append("/" + Util.getWorldName(worldId));
+            worldDisplay.append("/").append(Util.getWorldName(worldId));
         }
 
         // command
         DecimalFormat decimalFormat = new DecimalFormat("#.##", new DecimalFormatSymbols(Locale.ROOT));
-        message.append("|/" + command + " teleport wid:" + worldId + " " + decimalFormat.format(x + 0.50) + " " + y + " " + decimalFormat.format(z + 0.50) + "|");
+        message.append("|/").append(command).append(" teleport wid:").append(worldId).append(" ").append(decimalFormat.format(x + 0.50)).append(" ").append(y).append(" ").append(decimalFormat.format(z + 0.50)).append("|");
 
         // chat output
-        message.append(Color.GREY + (italic ? Color.ITALIC : "") + "(x" + x + "/y" + y + "/z" + z + worldDisplay.toString() + ")");
+        message.append(Color.GREY).append(italic ? Color.ITALIC : "").append("(x").append(x).append("/y").append(y).append("/z").append(z).append(worldDisplay).append(")");
 
         return message.append(Chat.COMPONENT_TAG_CLOSE).toString();
     }
@@ -173,43 +174,30 @@ public class Util extends Queue {
 
         StringBuilder pagination = new StringBuilder();
         if (totalPages > 1) {
-            pagination.append(Color.GREY + "(");
+            pagination.append(Color.GREY).append("(");
             if (page > 3) {
-                pagination.append(Color.WHITE + Chat.COMPONENT_TAG_OPEN + Chat.COMPONENT_COMMAND + "|/" + command + " l " + 1 + "|" + "1 " + Chat.COMPONENT_TAG_CLOSE);
+                pagination.append(Color.WHITE).append(Chat.COMPONENT_TAG_OPEN).append(Chat.COMPONENT_COMMAND).append("|/").append(command).append(" l 1|").append("1 ").append(Chat.COMPONENT_TAG_CLOSE);
                 if (page > 4 && totalPages > 7) {
-                    pagination.append(Color.GREY + "... ");
-                }
-                else {
-                    pagination.append(Color.GREY + "| ");
+                    pagination.append(Color.GREY).append("... ");
+                } else {
+                    pagination.append(Color.GREY).append("| ");
                 }
             }
 
-            int displayStart = (page - 2) < 1 ? 1 : (page - 2);
-            int displayEnd = (page + 2) > totalPages ? totalPages : (page + 2);
+            int displayStart = Math.max(page - 2, 1);
+            int displayEnd = Math.min(page + 2, totalPages);
             if (page > 999 || (page > 101 && totalPages > 99999)) { // limit to max 5 page numbers
-                displayStart = (displayStart + 1) < displayEnd ? (displayStart + 1) : displayStart;
-                displayEnd = (displayEnd - 1) > displayStart ? (displayEnd - 1) : displayEnd;
+                displayStart = Math.max(displayStart + 1, displayEnd);
+                displayEnd = Math.min(displayEnd - 1, displayEnd);
                 if (displayStart > (totalPages - 3)) {
-                    displayStart = (totalPages - 3) < 1 ? 1 : (totalPages - 3);
+                    displayStart = Math.max(totalPages - 3, 1);
                 }
-            }
-            else { // display at least 7 page numbers
+            } else { // display at least 7 page numbers
                 if (displayStart > (totalPages - 5)) {
-                    displayStart = (totalPages - 5) < 1 ? 1 : (totalPages - 5);
+                    displayStart = Math.max(totalPages - 5, 1);
                 }
                 if (displayEnd < 6) {
-                    displayEnd = 6 > totalPages ? totalPages : 6;
-                }
-            }
-
-            if (page > 99999) { // limit to max 3 page numbers
-                displayStart = (displayStart + 1) < displayEnd ? (displayStart + 1) : displayStart;
-                displayEnd = (displayEnd - 1) >= displayStart ? (displayEnd - 1) : displayEnd;
-                if (page == (totalPages - 1)) {
-                    displayEnd = totalPages - 1;
-                }
-                if (displayStart < displayEnd) {
-                    displayStart = displayEnd;
+                    displayEnd = Math.min(6, totalPages);
                 }
             }
 
@@ -219,35 +207,32 @@ public class Util extends Queue {
 
             for (int displayPage = displayStart; displayPage <= displayEnd; displayPage++) {
                 if (page != displayPage) {
-                    pagination.append(Color.WHITE + Chat.COMPONENT_TAG_OPEN + Chat.COMPONENT_COMMAND + "|/" + command + " l " + displayPage + "|" + displayPage + (displayPage < totalPages ? " " : "") + Chat.COMPONENT_TAG_CLOSE);
-                }
-                else {
-                    pagination.append(Color.WHITE + Color.UNDERLINE + displayPage + Color.RESET + (displayPage < totalPages ? " " : ""));
+                    pagination.append(Color.WHITE).append(Chat.COMPONENT_TAG_OPEN).append(Chat.COMPONENT_COMMAND).append("|/").append(command).append(" l ").append(displayPage).append("|").append(displayPage).append((displayPage < totalPages ? " " : "")).append(Chat.COMPONENT_TAG_CLOSE);
+                } else {
+                    pagination.append(Color.WHITE).append(Color.UNDERLINE).append(displayPage).append(Color.RESET).append((displayPage < totalPages ? " " : ""));
                 }
                 if (displayPage < displayEnd) {
-                    pagination.append(Color.GREY + "| ");
+                    pagination.append(Color.GREY).append("| ");
                 }
             }
 
             if (displayEnd < totalPages) {
                 if (displayEnd < (totalPages - 1)) {
-                    pagination.append(Color.GREY + "... ");
-                }
-                else {
-                    pagination.append(Color.GREY + "| ");
+                    pagination.append(Color.GREY).append("... ");
+                } else {
+                    pagination.append(Color.GREY).append("| ");
                 }
                 if (page != totalPages) {
-                    pagination.append(Color.WHITE + Chat.COMPONENT_TAG_OPEN + Chat.COMPONENT_COMMAND + "|/" + command + " l " + totalPages + "|" + totalPages + Chat.COMPONENT_TAG_CLOSE);
-                }
-                else {
-                    pagination.append(Color.WHITE + Color.UNDERLINE + totalPages);
+                    pagination.append(Color.WHITE).append(Chat.COMPONENT_TAG_OPEN).append(Chat.COMPONENT_COMMAND).append("|/").append(command).append(" l ").append(totalPages).append("|").append(totalPages).append(Chat.COMPONENT_TAG_CLOSE);
+                } else {
+                    pagination.append(Color.WHITE).append(Color.UNDERLINE).append(totalPages);
                 }
             }
 
-            pagination.append(Color.GREY + ")");
+            pagination.append(Color.GREY).append(")");
         }
 
-        return message.append(Color.WHITE + backArrow + Color.DARK_AQUA + Phrase.build(Phrase.LOOKUP_PAGE, Color.WHITE + page + "/" + totalPages) + nextArrow + pagination).toString();
+        return message.append(Color.WHITE).append(backArrow).append(Color.DARK_AQUA).append(Phrase.build(Phrase.LOOKUP_PAGE, Color.WHITE + page + "/" + totalPages)).append(nextArrow).append(pagination).toString();
     }
 
     public static String getTimeSince(long resultTime, long currentTime, boolean component) {
@@ -258,14 +243,14 @@ public class Util extends Queue {
         }
 
         // minutes
-        timeSince = timeSince / 60;
+        timeSince /= 60;
         if (timeSince < 60.0) {
             message.append(Phrase.build(Phrase.LOOKUP_TIME, new DecimalFormat("0.00").format(timeSince) + "/m"));
         }
 
         // hours
         if (message.length() == 0) {
-            timeSince = timeSince / 60;
+            timeSince /= 60;
             if (timeSince < 24.0) {
                 message.append(Phrase.build(Phrase.LOOKUP_TIME, new DecimalFormat("0.00").format(timeSince) + "/h"));
             }
@@ -273,7 +258,7 @@ public class Util extends Queue {
 
         // days
         if (message.length() == 0) {
-            timeSince = timeSince / 24;
+            timeSince /= 24;
             message.append(Phrase.build(Phrase.LOOKUP_TIME, new DecimalFormat("0.00").format(timeSince) + "/d"));
         }
 
@@ -307,8 +292,7 @@ public class Util extends Queue {
 
         if (!displayName.isEmpty()) {
             message.insert(0, enchantments.isEmpty() ? Color.WHITE : Color.AQUA);
-        }
-        else if (!enchantments.isEmpty()) {
+        } else if (!enchantments.isEmpty()) {
             String name = Util.capitalize(item.getType().name().replace("_", " "), true);
             message.insert(0, Color.AQUA + Color.ITALIC + name);
         }
@@ -324,7 +308,7 @@ public class Util extends Queue {
         StringBuilder message = new StringBuilder(Chat.COMPONENT_TAG_OPEN + Chat.COMPONENT_POPUP);
 
         // tooltip
-        message.append("|" + tooltip.replace("|", Chat.COMPONENT_PIPE) + "|");
+        message.append("|").append(tooltip.replace("|", Chat.COMPONENT_PIPE)).append("|");
 
         // chat output
         message.append(phrase);
@@ -402,746 +386,11 @@ public class Util extends Queue {
         return string.substring(0, 1).toUpperCase(Locale.ROOT) + string.substring(1);
     }
 
-    public static int getBlockId(String name, boolean internal) {
-        int id = -1;
-
-        name = name.toLowerCase(Locale.ROOT).trim();
-        if (!name.contains(":")) {
-            name = NAMESPACE + name;
+    public static int getBlockId(Material material) {
+        if (material == null) {
+            material = Material.AIR;
         }
-
-        if (ConfigHandler.materials.get(name) != null) {
-            id = ConfigHandler.materials.get(name);
-        }
-        else if (internal) {
-            int mid = ConfigHandler.materialId + 1;
-            ConfigHandler.materials.put(name, mid);
-            ConfigHandler.materialsReversed.put(mid, name);
-            ConfigHandler.materialId = mid;
-            Queue.queueMaterialInsert(mid, name);
-            id = ConfigHandler.materials.get(name);
-        }
-
-        return id;
-    }
-
-    public static int getBlockdataId(String data, boolean internal) {
-        int id = -1;
-        data = data.toLowerCase(Locale.ROOT).trim();
-
-        if (ConfigHandler.blockdata.get(data) != null) {
-            id = ConfigHandler.blockdata.get(data);
-        }
-        else if (internal) {
-            int bid = ConfigHandler.blockdataId + 1;
-            ConfigHandler.blockdata.put(data, bid);
-            ConfigHandler.blockdataReversed.put(bid, data);
-            ConfigHandler.blockdataId = bid;
-            Queue.queueBlockDataInsert(bid, data);
-            id = ConfigHandler.blockdata.get(data);
-        }
-
-        return id;
-    }
-
-    public static String getBlockDataString(int id) {
-        // Internal ID pulled from DB
-        String blockdata = "";
-        if (ConfigHandler.blockdataReversed.get(id) != null) {
-            blockdata = ConfigHandler.blockdataReversed.get(id);
-        }
-        return blockdata;
-    }
-
-    public static String getBlockName(int id) {
-        String name = "";
-        if (ConfigHandler.materialsReversed.get(id) != null) {
-            name = ConfigHandler.materialsReversed.get(id);
-        }
-        return name;
-    }
-
-    public static String getBlockNameShort(int id) {
-        String name = getBlockName(id);
-        if (name.contains(":")) {
-            name = name.split(":")[1];
-        }
-
-        return name;
-    }
-
-    public static void mergeItems(Material material, ItemStack[] items) {
-        if (material != null && (material.equals(Material.ARMOR_STAND) || BukkitAdapter.ADAPTER.isItemFrame(material))) {
-            return;
-        }
-        try {
-            int c1 = 0;
-            for (ItemStack o1 : items) {
-                if (o1 != null && o1.getAmount() > 0) {
-                    int c2 = 0;
-                    for (ItemStack o2 : items) {
-                        if (o2 != null && c2 > c1 && o1.isSimilar(o2) && !Util.isAir(o1.getType())) { // Ignores amount
-                            int namount = o1.getAmount() + o2.getAmount();
-                            o1.setAmount(namount);
-                            o2.setAmount(0);
-                        }
-                        c2++;
-                    }
-                }
-                c1++;
-            }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static Integer[] convertArray(String[] array) {
-        List<Integer> list = new ArrayList<>();
-        for (String item : array) {
-            list.add(Integer.parseInt(item));
-        }
-        return list.toArray(new Integer[list.size()]);
-    }
-
-    public static byte[] stringToByteData(String string, int type) {
-        byte[] result = null;
-        if (string != null) {
-            Material material = Util.getType(type);
-            if (material == null) {
-                return result;
-            }
-
-            if (material.isBlock() && !createBlockData(material).getAsString().equals(string) && string.startsWith(NAMESPACE + material.name().toLowerCase(Locale.ROOT) + "[") && string.endsWith("]")) {
-                String substring = string.substring(material.name().length() + 11, string.length() - 1);
-                String[] blockDataSplit = substring.split(",");
-                ArrayList<String> blockDataArray = new ArrayList<>();
-                for (String data : blockDataSplit) {
-                    int id = getBlockdataId(data, true);
-                    if (id > -1) {
-                        blockDataArray.add(Integer.toString(id));
-                    }
-                }
-                string = String.join(",", blockDataArray);
-            }
-            else if (!string.contains(":") && (material == Material.PAINTING || BukkitAdapter.ADAPTER.isItemFrame(material))) {
-                int id = getBlockdataId(string, true);
-                if (id > -1) {
-                    string = Integer.toString(id);
-                }
-                else {
-                    return result;
-                }
-            }
-            else {
-                return result;
-            }
-
-            result = string.getBytes(StandardCharsets.UTF_8);
-        }
-
-        return result;
-    }
-
-    public static String byteDataToString(byte[] data, int type) {
-        String result = "";
-        if (data != null) {
-            Material material = Util.getType(type);
-            if (material == null) {
-                return result;
-            }
-
-            result = new String(data, StandardCharsets.UTF_8);
-            if (result.length() > 0) {
-                if (result.matches("\\d+")) {
-                    result = result + ",";
-                }
-                if (result.contains(",")) {
-                    String[] blockDataSplit = result.split(",");
-                    ArrayList<String> blockDataArray = new ArrayList<>();
-                    for (String blockData : blockDataSplit) {
-                        String block = getBlockDataString(Integer.parseInt(blockData));
-                        if (block.length() > 0) {
-                            blockDataArray.add(block);
-                        }
-                    }
-
-                    if (material == Material.PAINTING || BukkitAdapter.ADAPTER.isItemFrame(material)) {
-                        result = String.join(",", blockDataArray);
-                    }
-                    else {
-                        result = NAMESPACE + material.name().toLowerCase(Locale.ROOT) + "[" + String.join(",", blockDataArray) + "]";
-                    }
-                }
-                else {
-                    result = "";
-                }
-            }
-        }
-
-        return result;
-    }
-
-    public static byte[] convertByteData(Object data) {
-        byte[] result = null;
-        if (data == null) {
-            return result;
-        }
-
-        try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            BukkitObjectOutputStream oos = new BukkitObjectOutputStream(bos);
-            oos.writeObject(data);
-            oos.flush();
-            oos.close();
-            bos.close();
-            result = bos.toByteArray();
-        }
-        catch (Exception e) { // only display exception on development branch
-            if (!ConfigHandler.EDITION_BRANCH.contains("-dev")) {
-                e.printStackTrace();
-            }
-        }
-
-        return result;
-    }
-
-    public static ItemMeta deserializeItemMeta(Class<? extends ItemMeta> itemMetaClass, Map<String, Object> args) {
-        try {
-            DelegateDeserialization delegate = itemMetaClass.getAnnotation(DelegateDeserialization.class);
-            return (ItemMeta) ConfigurationSerialization.deserializeObject(args, delegate.value());
-        }
-        catch (Exception e) { // only display exception on development branch
-            if (!ConfigHandler.EDITION_BRANCH.contains("-dev")) {
-                e.printStackTrace();
-            }
-        }
-
-        return null;
-    }
-
-    public static <K, V extends Comparable<? super V>> SortedSet<Map.Entry<K, V>> entriesSortedByValues(Map<K, V> map) {
-        SortedSet<Map.Entry<K, V>> sortedEntries = new TreeSet<>((e1, e2) -> {
-            int res = e1.getValue().compareTo(e2.getValue());
-            return res != 0 ? res : 1;
-        });
-        sortedEntries.addAll(map.entrySet());
-        return sortedEntries;
-    }
-
-    public static Waterlogged checkWaterlogged(BlockData blockData, BlockState blockReplacedState) {
-        if (blockReplacedState.getType().equals(Material.WATER) && blockData instanceof Waterlogged) {
-            if (blockReplacedState.getBlockData().equals(Material.WATER.createBlockData())) {
-                Waterlogged waterlogged = (Waterlogged) blockData;
-                waterlogged.setWaterlogged(true);
-                return waterlogged;
-            }
-        }
-        return null;
-    }
-
-    public static ItemStack[] getContainerState(ItemStack[] array) {
-        ItemStack[] result = array == null ? null : array.clone();
-        if (result == null) {
-            return result;
-        }
-
-        int count = 0;
-        for (ItemStack itemStack : array) {
-            ItemStack clonedItem = null;
-            if (itemStack != null) {
-                clonedItem = itemStack.clone();
-            }
-            result[count] = clonedItem;
-            count++;
-        }
-
-        return result;
-    }
-
-    public static ItemStack[] sortContainerState(ItemStack[] array) {
-        if (array == null) {
-            return null;
-        }
-
-        ItemStack[] sorted = new ItemStack[array.length];
-        Map<String, ItemStack> map = new HashMap<>();
-        for (ItemStack itemStack : array) {
-            if (itemStack == null) {
-                continue;
-            }
-
-            map.put(itemStack.toString(), itemStack);
-        }
-
-        ArrayList<String> sortedKeys = new ArrayList<>(map.keySet());
-        Collections.sort(sortedKeys);
-
-        int i = 0;
-        for (String key : sortedKeys) {
-            sorted[i] = map.get(key);
-            i++;
-        }
-
-        return sorted;
-    }
-
-    /* return true if ItemStack[] contents are identical */
-    public static boolean compareContainers(ItemStack[] oldContainer, ItemStack[] newContainer) {
-        if (oldContainer.length != newContainer.length) {
-            return false;
-        }
-
-        for (int i = 0; i < oldContainer.length; i++) {
-            ItemStack oldItem = oldContainer[i];
-            ItemStack newItem = newContainer[i];
-
-            if (oldItem == null && newItem == null) {
-                continue;
-            }
-
-            if (oldItem == null || !oldItem.equals(newItem)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /* return true if newContainer contains new items */
-    public static boolean addedContainer(ItemStack[] oldContainer, ItemStack[] newContainer) {
-        if (oldContainer.length != newContainer.length) {
-            return false;
-        }
-
-        for (int i = 0; i < oldContainer.length; i++) {
-            ItemStack oldItem = oldContainer[i];
-            ItemStack newItem = newContainer[i];
-
-            if (oldItem == null && newItem == null) {
-                continue;
-            }
-
-            if (oldItem != null && newItem == null) {
-                return false;
-            }
-
-            if (oldItem == null) {
-                return true;
-            }
-
-            if (!newItem.equals(oldItem)) {
-                return (newItem.isSimilar(oldItem) && newItem.getAmount() > oldItem.getAmount());
-            }
-        }
-
-        return false;
-    }
-
-    /* return true if item can be added to container */
-    public static boolean canAddContainer(ItemStack[] container, ItemStack item, int forceMaxStack) {
-        for (ItemStack containerItem : container) {
-            if (containerItem == null || containerItem.getType() == Material.AIR) {
-                return true;
-            }
-
-            int maxStackSize = containerItem.getMaxStackSize();
-            if (forceMaxStack > 0 && (forceMaxStack < maxStackSize || maxStackSize == -1)) {
-                maxStackSize = forceMaxStack;
-            }
-
-            if (maxStackSize == -1) {
-                maxStackSize = 1;
-            }
-
-            if (containerItem.isSimilar(item) && containerItem.getAmount() < maxStackSize) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static int getArtId(String name, boolean internal) {
-        int id = -1;
-        name = name.toLowerCase(Locale.ROOT).trim();
-
-        if (ConfigHandler.art.get(name) != null) {
-            id = ConfigHandler.art.get(name);
-        }
-        else if (internal) {
-            int artID = ConfigHandler.artId + 1;
-            ConfigHandler.art.put(name, artID);
-            ConfigHandler.artReversed.put(artID, name);
-            ConfigHandler.artId = artID;
-            Queue.queueArtInsert(artID, name);
-            id = ConfigHandler.art.get(name);
-        }
-
-        return id;
-    }
-
-    public static String getArtName(int id) {
-        // Internal ID pulled from DB
-        String artname = "";
-        if (ConfigHandler.artReversed.get(id) != null) {
-            artname = ConfigHandler.artReversed.get(id);
-        }
-        return artname;
-    }
-
-    public static int setPlayerArmor(PlayerInventory inventory, ItemStack itemStack) {
-        String itemName = itemStack.getType().name();
-        boolean isHelmet = (itemName.endsWith("_HELMET") || itemName.endsWith("_HEAD") || itemName.endsWith("_SKULL") || itemName.endsWith("_PUMPKIN"));
-        boolean isChestplate = (itemName.endsWith("_CHESTPLATE"));
-        boolean isLeggings = (itemName.endsWith("_LEGGINGS"));
-        boolean isBoots = (itemName.endsWith("_BOOTS"));
-
-        if (isHelmet && inventory.getHelmet() == null) {
-            inventory.setHelmet(itemStack);
-            return 3;
-        }
-        else if (isChestplate && inventory.getChestplate() == null) {
-            inventory.setChestplate(itemStack);
-            return 2;
-        }
-        else if (isLeggings && inventory.getLeggings() == null) {
-            inventory.setLeggings(itemStack);
-            return 1;
-        }
-        else if (isBoots && inventory.getBoots() == null) {
-            inventory.setBoots(itemStack);
-            return 0;
-        }
-
-        return -1;
-    }
-
-    public static ItemStack[] getArmorStandContents(EntityEquipment equipment) {
-        ItemStack[] contents = new ItemStack[6];
-        if (equipment != null) {
-            // 0: BOOTS, 1: LEGGINGS, 2: CHESTPLATE, 3: HELMET
-            ItemStack[] armorContent = equipment.getArmorContents();
-            System.arraycopy(armorContent, 0, contents, 0, 4);
-            contents[4] = equipment.getItemInMainHand();
-            contents[5] = equipment.getItemInOffHand();
-        }
-        else {
-            Arrays.fill(contents, new ItemStack(Material.AIR));
-        }
-
-        return contents;
-    }
-
-    public static ItemStack[] getContainerContents(Material type, Object container, Location location) {
-        ItemStack[] contents = null;
-        if (Config.getConfig(location.getWorld()).ITEM_TRANSACTIONS && BlockGroup.CONTAINERS.contains(type)) {
-            try {
-                // container may be null if called from within WorldEdit logger
-                if (container == null) {
-                    container = location.getBlock();
-                }
-
-                if (type == Material.ARMOR_STAND) {
-                    LivingEntity entity = (LivingEntity) container;
-                    EntityEquipment equipment = Util.getEntityEquipment(entity);
-                    if (equipment != null) {
-                        contents = getArmorStandContents(equipment);
-                    }
-                }
-                else if (type == Material.ITEM_FRAME) {
-                    ItemFrame entity = (ItemFrame) container;
-                    contents = Util.getItemFrameItem(entity);
-                }
-                else if (type == Material.JUKEBOX) {
-                    Jukebox blockState = (Jukebox) ((Block) container).getState();
-                    contents = Util.getJukeboxItem(blockState);
-                }
-                else {
-                    Block block = (Block) container;
-                    Inventory inventory = Util.getContainerInventory(block.getState(), true);
-                    if (inventory != null) {
-                        contents = inventory.getContents();
-                    }
-                }
-
-                if (type == Material.ARMOR_STAND || type == Material.ITEM_FRAME) {
-                    boolean hasItem = false;
-                    for (ItemStack item : contents) {
-                        if (item != null && !item.getType().equals(Material.AIR)) {
-                            hasItem = true;
-                            break;
-                        }
-                    }
-                    if (!hasItem) {
-                        contents = null;
-                    }
-                }
-
-                if (contents != null) {
-                    contents = Util.getContainerState(contents);
-                }
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        return contents;
-    }
-
-    public static Inventory getContainerInventory(BlockState blockState, boolean singleBlock) {
-        Inventory inventory = null;
-        try {
-            if (blockState instanceof BlockInventoryHolder) {
-                if (singleBlock) {
-                    List<Material> chests = Arrays.asList(Material.CHEST, Material.TRAPPED_CHEST);
-                    Material type = blockState.getType();
-                    if (chests.contains(type)) {
-                        inventory = ((Chest) blockState).getBlockInventory();
-                    }
-                }
-                if (inventory == null) {
-                    inventory = ((BlockInventoryHolder) blockState).getInventory();
-                }
-            }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        return inventory;
-    }
-
-    public static EntityEquipment getEntityEquipment(LivingEntity entity) {
-        EntityEquipment equipment = null;
-        try {
-            equipment = entity.getEquipment();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        return equipment;
-    }
-
-    public static ItemStack[] getItemFrameItem(ItemFrame entity) {
-        ItemStack[] contents = null;
-        try {
-            contents = new ItemStack[] { entity.getItem() };
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        return contents;
-    }
-
-    public static ItemStack[] getJukeboxItem(Jukebox blockState) {
-        ItemStack[] contents = null;
-        try {
-            contents = new ItemStack[] { blockState.getRecord() };
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        return contents;
-    }
-
-    public static int getEntityId(EntityType type) {
-        if (type == null) {
-            return -1;
-        }
-
-        return getEntityId(type.name(), true);
-    }
-
-    public static int getEntityId(String name, boolean internal) {
-        int id = -1;
-        name = name.toLowerCase(Locale.ROOT).trim();
-
-        if (ConfigHandler.entities.get(name) != null) {
-            id = ConfigHandler.entities.get(name);
-        }
-        else if (internal) {
-            int entityID = ConfigHandler.entityId + 1;
-            ConfigHandler.entities.put(name, entityID);
-            ConfigHandler.entitiesReversed.put(entityID, name);
-            ConfigHandler.entityId = entityID;
-            Queue.queueEntityInsert(entityID, name);
-            id = ConfigHandler.entities.get(name);
-        }
-
-        return id;
-    }
-
-    public static Material getEntityMaterial(EntityType type) {
-        switch (type.name()) {
-            case "ARMOR_STAND":
-                return Material.ARMOR_STAND;
-            case "ITEM_FRAME":
-                return Material.ITEM_FRAME;
-            case "END_CRYSTAL":
-            case "ENDER_CRYSTAL":
-                return Material.END_CRYSTAL;
-            case "ENDER_PEARL":
-                return Material.ENDER_PEARL;
-            case "POTION":
-            case "SPLASH_POTION":
-                return Material.SPLASH_POTION;
-            case "EXPERIENCE_BOTTLE":
-            case "THROWN_EXP_BOTTLE":
-                return Material.EXPERIENCE_BOTTLE;
-            case "TRIDENT":
-                return Material.TRIDENT;
-            case "FIREWORK_ROCKET":
-            case "FIREWORK":
-                return Material.FIREWORK_ROCKET;
-            case "EGG":
-                return Material.EGG;
-            case "SNOWBALL":
-                return Material.SNOWBALL;
-            case "WIND_CHARGE":
-                return Material.valueOf("WIND_CHARGE");
-            default:
-                return BukkitAdapter.ADAPTER.getFrameType(type);
-        }
-    }
-
-    public static String getEntityName(int id) {
-        // Internal ID pulled from DB
-        String entityName = "";
-        if (ConfigHandler.entitiesReversed.get(id) != null) {
-            entityName = ConfigHandler.entitiesReversed.get(id);
-        }
-        return entityName;
-    }
-
-    public static EntityType getEntityType(int id) {
-        // Internal ID pulled from DB
-        EntityType entitytype = null;
-        if (ConfigHandler.entitiesReversed.get(id) != null) {
-            String name = ConfigHandler.entitiesReversed.get(id);
-            if (name.contains(NAMESPACE)) {
-                name = name.split(":")[1];
-            }
-            entitytype = EntityType.valueOf(name.toUpperCase(Locale.ROOT));
-        }
-        return entitytype;
-    }
-
-    public static EntityType getEntityType(String name) {
-        // Name entered by user
-        EntityType type = null;
-        name = name.toLowerCase(Locale.ROOT).trim();
-        if (name.contains(NAMESPACE)) {
-            name = (name.split(":"))[1];
-        }
-
-        if (ConfigHandler.entities.get(name) != null) {
-            type = EntityType.valueOf(name.toUpperCase(Locale.ROOT));
-        }
-
-        return type;
-    }
-
-    public static int getItemStackHashCode(ItemStack item) {
-        try {
-            return item.hashCode();
-        }
-        catch (Exception exception) {
-            return -1;
-        }
-    }
-
-    public static int getMaterialId(Material material) {
         return getBlockId(material.name(), true);
-    }
-
-    public static int getSpawnerType(EntityType type) {
-        int result = Util.getEntityId(type);
-        if (result == -1) {
-            result = 0; // default to pig
-        }
-
-        return result;
-    }
-
-    public static EntityType getSpawnerType(int type) {
-        EntityType result = Util.getEntityType(type);
-        if (result == null) {
-            result = EntityType.PIG;
-        }
-
-        return result;
-    }
-
-    public static boolean isAir(Material type) {
-        return (type == Material.AIR || type == Material.CAVE_AIR || type == Material.VOID_AIR);
-    }
-
-    public static boolean solidBlock(Material type) {
-        return type.isSolid();
-    }
-
-    public static boolean passableBlock(Block block) {
-        return block.isPassable();
-    }
-
-    public static Material getType(Block block) {
-        // Temp code
-        return block.getType();
-    }
-
-    public static Material getType(int id) {
-        // Internal ID pulled from DB
-        Material material = null;
-        if (ConfigHandler.materialsReversed.get(id) != null && id > 0) {
-            String name = ConfigHandler.materialsReversed.get(id).toUpperCase(Locale.ROOT);
-            if (name.contains(NAMESPACE.toUpperCase(Locale.ROOT))) {
-                name = name.split(":")[1];
-            }
-
-            name = BukkitAdapter.ADAPTER.parseLegacyName(name);
-            material = Material.getMaterial(name);
-
-            if (material == null) {
-                material = Material.getMaterial(name, true);
-            }
-        }
-
-        return material;
-    }
-
-    public static Material getType(String name) {
-        // Name entered by user
-        Material material = null;
-        name = name.toUpperCase(Locale.ROOT).trim();
-        if (!name.startsWith("#")) {
-            if (name.contains(NAMESPACE.toUpperCase(Locale.ROOT))) {
-                name = name.split(":")[1];
-            }
-
-            name = BukkitAdapter.ADAPTER.parseLegacyName(name);
-            material = Material.matchMaterial(name);
-        }
-
-        return material;
-    }
-
-    public static int getWorldId(String name) {
-        int id = -1;
-        try {
-            if (ConfigHandler.worlds.get(name) == null) {
-                int wid = ConfigHandler.worldId + 1;
-                ConfigHandler.worlds.put(name, wid);
-                ConfigHandler.worldsReversed.put(wid, name);
-                ConfigHandler.worldId = wid;
-                Queue.queueWorldInsert(wid, name);
-            }
-            id = ConfigHandler.worlds.get(name);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        return id;
     }
 
     public static String getWorldName(int id) {
@@ -1150,8 +399,7 @@ public class Util extends Queue {
             if (ConfigHandler.worldsReversed.get(id) != null) {
                 name = ConfigHandler.worldsReversed.get(id);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return name;
@@ -1161,21 +409,14 @@ public class Util extends Queue {
         if (type.equals(Material.ICE)) { // Ice block
             int unixtimestamp = (int) (System.currentTimeMillis() / 1000L);
             int wid = Util.getWorldId(block.getWorld().getName());
-            CacheHandler.lookupCache.put("" + block.getX() + "." + block.getY() + "." + block.getZ() + "." + wid + "", new Object[] { unixtimestamp, user, Material.WATER });
+            CacheHandler.lookupCache.put("" + block.getX() + "." + block.getY() + "." + block.getZ() + "." + wid + "", new Object[]{unixtimestamp, user, Material.WATER});
             return true;
         }
         return false;
     }
 
     public static boolean listContains(Set<Material> list, Material value) {
-        boolean result = false;
-        for (Material list_value : list) {
-            if (list_value.equals(value)) {
-                result = true;
-                break;
-            }
-        }
-        return result;
+        return list.contains(value);
     }
 
     public static void loadWorldEdit() {
@@ -1190,12 +431,10 @@ public class Util extends Queue {
                     if (value < 6) {
                         validVersion = false;
                     }
-                }
-                else {
+                } else {
                     if (version.contains("+")) {
                         version = version.split("\\+")[1];
-                    }
-                    else {
+                    } else {
                         version = version.split(";")[1];
                     }
 
@@ -1206,8 +445,7 @@ public class Util extends Queue {
                         }
                     }
                 }
-            }
-            else if (version.contains(".")) {
+            } else if (version.contains(".")) {
                 String[] worldEditVersion = version.split("-|\\.");
                 if (worldEditVersion.length >= 2) {
                     worldEditVersion[0] = worldEditVersion[0].replaceAll("[^0-9]", "");
@@ -1216,8 +454,7 @@ public class Util extends Queue {
                         validVersion = false;
                     }
                 }
-            }
-            else if (version.equals("unspecified")) { // FAWE
+            } else if (version.equals("unspecified")) { // FAWE
                 validVersion = false;
                 Plugin fawe = Bukkit.getServer().getPluginManager().getPlugin("FastAsyncWorldEdit");
                 if (fawe != null) {
@@ -1229,19 +466,16 @@ public class Util extends Queue {
                         validVersion = true;
                     }
                 }
-            }
-            else {
+            } else {
                 validVersion = false;
             }
 
             if (validVersion) {
                 CoreProtectEditSessionEvent.register();
-            }
-            else {
+            } else {
                 Chat.console(Phrase.build(Phrase.INTEGRATION_VERSION, "WorldEdit"));
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -1249,8 +483,7 @@ public class Util extends Queue {
     public static void unloadWorldEdit() {
         try {
             CoreProtectEditSessionEvent.unregister();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -1277,11 +510,9 @@ public class Util extends Queue {
                 if (worldName.toLowerCase(Locale.ROOT).equals(name)) {
                     result = world.getName();
                     break;
-                }
-                else if (worldName.toLowerCase(Locale.ROOT).endsWith(name)) {
+                } else if (worldName.toLowerCase(Locale.ROOT).endsWith(name)) {
                     result = world.getName();
-                }
-                else if (worldName.toLowerCase(Locale.ROOT).replaceAll("[^a-zA-Z0-9]", "").endsWith(name)) {
+                } else if (worldName.toLowerCase(Locale.ROOT).replaceAll("[^a-zA-Z0-9]", "").endsWith(name)) {
                     result = world.getName();
                 }
             }
@@ -1289,8 +520,7 @@ public class Util extends Queue {
             if (result.length() > 0) {
                 id = getWorldId(result);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -1353,8 +583,7 @@ public class Util extends Queue {
     public static boolean isSpigot() {
         try {
             Class.forName("org.spigotmc.SpigotConfig");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return false;
         }
 
@@ -1364,22 +593,18 @@ public class Util extends Queue {
     public static boolean isPaper() {
         try {
             Class.forName("com.destroystokyo.paper.PaperConfig");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return false;
         }
-
         return true;
     }
 
     public static boolean isFolia() {
         try {
             Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return false;
         }
-
         return true;
     }
 
@@ -1399,8 +624,7 @@ public class Util extends Queue {
             if (branch.length() > 0) {
                 branch = "-" + branch;
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -1411,16 +635,13 @@ public class Util extends Queue {
         if (oldVersion[0] < currentVersion[0]) {
             // Major version
             return true;
-        }
-        else if (oldVersion[0].equals(currentVersion[0]) && oldVersion[1] < currentVersion[1]) {
+        } else if (oldVersion[0].equals(currentVersion[0]) && oldVersion[1] < currentVersion[1]) {
             // Minor version
             return true;
-        }
-        else if (oldVersion.length < 3 && currentVersion.length >= 3 && oldVersion[0].equals(currentVersion[0]) && oldVersion[1].equals(currentVersion[1]) && 0 < currentVersion[2]) {
+        } else if (oldVersion.length < 3 && currentVersion.length >= 3 && oldVersion[0].equals(currentVersion[0]) && oldVersion[1].equals(currentVersion[1]) && 0 < currentVersion[2]) {
             // Revision version (#.# vs #.#.#)
             return true;
-        }
-        else if (oldVersion.length >= 3 && currentVersion.length >= 3 && oldVersion[0].equals(currentVersion[0]) && oldVersion[1].equals(currentVersion[1]) && oldVersion[2] < currentVersion[2]) {
+        } else if (oldVersion.length >= 3 && currentVersion.length >= 3 && oldVersion[0].equals(currentVersion[0]) && oldVersion[1].equals(currentVersion[1]) && oldVersion[2] < currentVersion[2]) {
             // Revision version (#.#.# vs #.#.#)
             return true;
         }
@@ -1494,7 +715,7 @@ public class Util extends Queue {
             @SuppressWarnings("unchecked")
             ItemStack item = ItemStack.deserialize((Map<String, Object>) itemMap.get("0"));
             @SuppressWarnings("unchecked")
-            List<List<Map<String, Object>>> metadata = (List<List<Map<String, Object>>>) itemMap.get("1");
+            List<List<Map<String, Object>>> metadata = (List<List<Map<String, Object>>) itemMap.get("1");
 
             Object[] populatedStack = Rollback.populateItemStack(item, metadata);
             result = (ItemStack) populatedStack[2];
@@ -1512,16 +733,14 @@ public class Util extends Queue {
                 if (command.length() > 0) {
                     meta.add(command);
                 }
-            }
-            else if (block instanceof Banner) {
+            } else if (block instanceof Banner) {
                 Banner banner = (Banner) block;
                 meta.add(banner.getBaseColor());
                 List<Pattern> patterns = banner.getPatterns();
                 for (Pattern pattern : patterns) {
                     meta.add(pattern.serialize());
                 }
-            }
-            else if (block instanceof ShulkerBox) {
+            } else if (block instanceof ShulkerBox) {
                 ShulkerBox shulkerBox = (ShulkerBox) block;
                 ItemStack[] inventory = shulkerBox.getSnapshotInventory().getStorageContents();
                 int slot = 0;
@@ -1533,8 +752,7 @@ public class Util extends Queue {
                     slot++;
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -1555,8 +773,7 @@ public class Util extends Queue {
                 ((Waterlogged) result).setWaterlogged(false);
             }
             return result;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return null;
         }
     }
@@ -1569,8 +786,7 @@ public class Util extends Queue {
         if (!update) {
             setTypeAndData(block, type, blockData, update);
             map.remove(block);
-        }
-        else {
+        } else {
             map.put(block, blockData);
         }
     }
@@ -1590,13 +806,10 @@ public class Util extends Queue {
         try {
             PreparedStatement preparedStmt = connection.prepareStatement(query);
             ResultSet resultSet = preparedStmt.executeQuery();
-            if (resultSet.isBeforeFirst()) {
-                result = true;
-            }
+            result = resultSet.isBeforeFirst();
             resultSet.close();
             preparedStmt.close();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return result;
@@ -1616,7 +829,7 @@ public class Util extends Queue {
             String rolledBack = array[8];
             String wid = array[9];
             String blockData = array[10];
-            return new String[] { time, user, x, y, z, type, data, action, rolledBack, wid, "", "", blockData };
+            return new String[]{time, user, x, y, z, type, data, action, rolledBack, wid, "", "", blockData};
         }
 
         return null;
@@ -1632,8 +845,7 @@ public class Util extends Queue {
                     }
                 }
                 block.update();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }, block.getLocation());
@@ -1644,15 +856,7 @@ public class Util extends Queue {
     }
 
     public static boolean checkWorldEdit() {
-        boolean result = false;
-        for (World world : Bukkit.getServer().getWorlds()) {
-            if (Config.getConfig(world).WORLDEDIT) {
-                result = true;
-                break;
-            }
-        }
-
-        return result;
+        return Bukkit.getServer().getWorlds().stream().anyMatch(world -> Config.getConfig(world).WORLDEDIT);
     }
 
     public static String getWidIndex(String queryTable) {
@@ -1660,8 +864,7 @@ public class Util extends Queue {
         boolean isMySQL = Config.getGlobal().MYSQL;
         if (isMySQL) {
             index = "USE INDEX(wid) ";
-        }
-        else {
+        } else {
             switch (queryTable) {
                 case "block":
                     index = "INDEXED BY block_index ";
@@ -1721,11 +924,9 @@ public class Util extends Queue {
     public static int getSignData(boolean frontGlowing, boolean backGlowing) {
         if (frontGlowing && backGlowing) {
             return 3;
-        }
-        else if (backGlowing) {
+        } else if (backGlowing) {
             return 2;
-        }
-        else if (frontGlowing) {
+        } else if (frontGlowing) {
             return 1;
         }
 
@@ -1735,5 +936,4 @@ public class Util extends Queue {
     public static boolean isSideGlowing(boolean isFront, int data) {
         return ((isFront && (data == 1 || data == 3)) || (!isFront && (data == 2 || data == 3)));
     }
-
 }

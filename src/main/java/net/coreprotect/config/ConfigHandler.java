@@ -43,7 +43,7 @@ public class ConfigHandler extends Queue {
     public static final int EDITION_VERSION = 2;
     public static final String EDITION_BRANCH = Util.getBranch();
     public static final String EDITION_NAME = Util.getPluginName();
-    public static final String JAVA_VERSION = "11.0";
+    public static final String JAVA_VERSION = "21.0"; // Updated to reflect target version
     public static final String SPIGOT_VERSION = "1.15";
     public static String path = "plugins/CoreProtect/";
     public static String sqlite = "database.db";
@@ -145,17 +145,17 @@ public class ConfigHandler extends Queue {
             String blacklist = ConfigHandler.path + "blacklist.txt";
             boolean exists = (new File(blacklist)).exists();
             if (exists) {
-                RandomAccessFile blfile = new RandomAccessFile(blacklist, "rw");
-                long blc = blfile.length();
-                if (blc > 0) {
-                    while (blfile.getFilePointer() < blfile.length()) {
-                        String blacklistUser = blfile.readLine().replaceAll(" ", "").toLowerCase(Locale.ROOT);
-                        if (blacklistUser.length() > 0) {
-                            ConfigHandler.blacklist.put(blacklistUser, true);
+                try (RandomAccessFile blfile = new RandomAccessFile(blacklist, "rw")) {
+                    long blc = blfile.length();
+                    if (blc > 0) {
+                        while (blfile.getFilePointer() < blfile.length()) {
+                            String blacklistUser = blfile.readLine().replaceAll(" ", "").toLowerCase(Locale.ROOT);
+                            if (blacklistUser.length() > 0) {
+                                ConfigHandler.blacklist.put(blacklistUser, true);
+                            }
                         }
                     }
                 }
-                blfile.close();
             }
         }
         catch (Exception e) {

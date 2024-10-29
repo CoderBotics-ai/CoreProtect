@@ -27,9 +27,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import net.coreprotect.model.BlockGroup;
 import net.coreprotect.utility.Util;
 
-public class Bukkit_v1_17 extends Bukkit_v1_16 implements BukkitInterface {
+public class Bukkit_v1_21 extends Bukkit_v1_20 implements BukkitInterface {
 
-    public Bukkit_v1_17() {
+    public Bukkit_v1_21() {
         BlockGroup.TRACK_ANY = new HashSet<>(Arrays.asList(Material.PISTON_HEAD, Material.LEVER, Material.BELL, Material.SMALL_AMETHYST_BUD, Material.MEDIUM_AMETHYST_BUD, Material.LARGE_AMETHYST_BUD, Material.AMETHYST_CLUSTER, Material.GLOW_LICHEN));
         BlockGroup.TRACK_TOP = new HashSet<>(Arrays.asList(Material.TORCH, Material.REDSTONE_TORCH, Material.BAMBOO, Material.BAMBOO_SAPLING, Material.CORNFLOWER, Material.LILY_OF_THE_VALLEY, Material.WITHER_ROSE, Material.SWEET_BERRY_BUSH, Material.SCAFFOLDING, Material.OAK_SAPLING, Material.SPRUCE_SAPLING, Material.BIRCH_SAPLING, Material.JUNGLE_SAPLING, Material.ACACIA_SAPLING, Material.DARK_OAK_SAPLING, Material.POWERED_RAIL, Material.DETECTOR_RAIL, Material.FERN, Material.DEAD_BUSH, Material.DANDELION, Material.POPPY, Material.BLUE_ORCHID, Material.ALLIUM, Material.AZURE_BLUET, Material.RED_TULIP, Material.ORANGE_TULIP, Material.WHITE_TULIP, Material.PINK_TULIP, Material.OXEYE_DAISY, Material.BROWN_MUSHROOM, Material.RED_MUSHROOM, Material.REDSTONE_WIRE, Material.WHEAT, Material.ACACIA_SIGN, Material.BIRCH_SIGN, Material.DARK_OAK_SIGN, Material.JUNGLE_SIGN, Material.OAK_SIGN, Material.SPRUCE_SIGN, Material.WHITE_BANNER, Material.ORANGE_BANNER, Material.MAGENTA_BANNER, Material.LIGHT_BLUE_BANNER, Material.YELLOW_BANNER, Material.LIME_BANNER, Material.PINK_BANNER, Material.GRAY_BANNER, Material.LIGHT_GRAY_BANNER, Material.CYAN_BANNER, Material.PURPLE_BANNER, Material.BLUE_BANNER, Material.BROWN_BANNER, Material.GREEN_BANNER, Material.RED_BANNER, Material.BLACK_BANNER, Material.RAIL, Material.IRON_DOOR, Material.SNOW, Material.CACTUS, Material.SUGAR_CANE, Material.REPEATER, Material.PUMPKIN_STEM, Material.MELON_STEM, Material.CARROT, Material.POTATO, Material.COMPARATOR, Material.ACTIVATOR_RAIL, Material.SUNFLOWER, Material.LILAC, Material.TALL_GRASS, Material.LARGE_FERN, Material.ROSE_BUSH, Material.PEONY, Material.NETHER_WART, Material.CHORUS_PLANT, Material.CHORUS_FLOWER, Material.KELP, Material.SOUL_TORCH, Material.TWISTING_VINES, Material.CRIMSON_FUNGUS, Material.WARPED_FUNGUS, Material.CRIMSON_ROOTS, Material.WARPED_ROOTS, Material.NETHER_SPROUTS, Material.CRIMSON_SIGN, Material.WARPED_SIGN, Material.AZALEA, Material.FLOWERING_AZALEA, Material.SMALL_DRIPLEAF, Material.BIG_DRIPLEAF));
         BlockGroup.TRACK_TOP_BOTTOM = new HashSet<>(Arrays.asList(Material.POINTED_DRIPSTONE, Material.BIG_DRIPLEAF_STEM));
@@ -70,15 +70,14 @@ public class Bukkit_v1_17 extends Bukkit_v1_16 implements BukkitInterface {
         if (entity instanceof Axolotl) {
             Axolotl axolotl = (Axolotl) entity;
             info.add(axolotl.getVariant());
-        }
-        else if (entity instanceof Goat) {
+        } else if (entity instanceof Goat) {
             Goat goat = (Goat) entity;
             info.add(goat.isScreaming());
-        }
-        else if (super.getEntityMeta(entity, info)) {
+            info.add(goat.hasLeftHorn());
+            info.add(goat.hasRightHorn());
+        } else if (super.getEntityMeta(entity, info)) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
 
@@ -93,18 +92,19 @@ public class Bukkit_v1_17 extends Bukkit_v1_16 implements BukkitInterface {
                 org.bukkit.entity.Axolotl.Variant set = (org.bukkit.entity.Axolotl.Variant) value;
                 axolotl.setVariant(set);
             }
-        }
-        else if (entity instanceof Goat) {
+        } else if (entity instanceof Goat) {
             Goat goat = (Goat) entity;
             if (count == 0) {
                 boolean set = (Boolean) value;
                 goat.setScreaming(set);
+            } else if (count == 1) {
+                goat.setLeftHorn((Boolean) value);
+            } else if (count == 2) {
+                goat.setRightHorn((Boolean) value);
             }
-        }
-        else if (super.setEntityMeta(entity, value, count)) {
+        } else if (super.setEntityMeta(entity, value, count)) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
 
@@ -130,11 +130,9 @@ public class Bukkit_v1_17 extends Bukkit_v1_16 implements BukkitInterface {
                 }
                 metadata.add(list);
             }
-        }
-        else if (super.getItemMeta(itemMeta, list, metadata, slot)) {
+        } else if (super.getItemMeta(itemMeta, list, metadata, slot)) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
 
@@ -143,7 +141,7 @@ public class Bukkit_v1_17 extends Bukkit_v1_16 implements BukkitInterface {
 
     @Override
     public boolean setItemMeta(Material rowType, ItemStack itemstack, List<Map<String, Object>> map) {
-        if ((rowType == Material.BUNDLE)) {
+        if (rowType == Material.BUNDLE) {
             BundleMeta meta = (BundleMeta) itemstack.getItemMeta();
             for (Map<String, Object> itemData : map) {
                 ItemStack itemStack = Util.unserializeItemStack(itemData);
@@ -152,11 +150,9 @@ public class Bukkit_v1_17 extends Bukkit_v1_16 implements BukkitInterface {
                 }
             }
             itemstack.setItemMeta(meta);
-        }
-        else if (super.setItemMeta(rowType, itemstack, map)) {
+        } else if (super.setItemMeta(rowType, itemstack, map)) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
 
@@ -172,8 +168,7 @@ public class Bukkit_v1_17 extends Bukkit_v1_16 implements BukkitInterface {
             if (!adjacent) {
                 return false;
             }
-        }
-        else if (!super.isAttached(block, scanBlock, blockData, scanMin)) {
+        } else if (!super.isAttached(block, scanBlock, blockData, scanMin)) {
             return false;
         }
 
@@ -239,5 +234,4 @@ public class Bukkit_v1_17 extends Bukkit_v1_16 implements BukkitInterface {
     public boolean isInvisible(Material material) {
         return material.isAir() || material == Material.LIGHT;
     }
-
 }
