@@ -197,23 +197,13 @@ public class BukkitAdapter implements BukkitInterface {
 
     @Override
     public Material getPlantSeeds(Material material) {
-        switch (material) {
-            case WHEAT:
-                material = Material.WHEAT_SEEDS;
-                break;
-            case PUMPKIN_STEM:
-                material = Material.PUMPKIN_SEEDS;
-                break;
-            case MELON_STEM:
-                material = Material.MELON_SEEDS;
-                break;
-            case BEETROOTS:
-                material = Material.BEETROOT_SEEDS;
-                break;
-            default:
-        }
-
-        return material;
+        return switch (material) {
+            case WHEAT -> Material.WHEAT_SEEDS;
+            case PUMPKIN_STEM -> Material.PUMPKIN_SEEDS;
+            case MELON_STEM -> Material.MELON_SEEDS;
+            case BEETROOTS -> Material.BEETROOT_SEEDS;
+            default -> material;
+        };
     }
 
     @Override
@@ -248,12 +238,7 @@ public class BukkitAdapter implements BukkitInterface {
 
     @Override
     public String getLine(Sign sign, int line) {
-        if (line < 4) {
-            return sign.getLine(line);
-        }
-        else {
-            return "";
-        }
+        return line < 4 ? sign.getLine(line) : "";
     }
 
     @Override
@@ -290,12 +275,10 @@ public class BukkitAdapter implements BukkitInterface {
 
     @Override
     public EntityType getEntityType(Material material) {
-        switch (material) {
-            case END_CRYSTAL:
-                return EntityType.valueOf("ENDER_CRYSTAL");
-            default:
-                return EntityType.UNKNOWN;
-        }
+        return switch (material) {
+            case END_CRYSTAL -> EntityType.valueOf("ENDER_CRYSTAL");
+            default -> EntityType.UNKNOWN;
+        };
     }
 
     @Override
@@ -307,5 +290,4 @@ public class BukkitAdapter implements BukkitInterface {
     public Object getRegistryValue(String key, Object tClass) {
         return null;
     }
-
 }

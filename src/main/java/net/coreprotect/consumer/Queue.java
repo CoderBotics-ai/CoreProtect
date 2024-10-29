@@ -2,6 +2,7 @@ package net.coreprotect.consumer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -10,9 +11,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.data.Bisected;
-import org.bukkit.block.data.Bisected.Half;
 import org.bukkit.block.data.type.Bed;
-import org.bukkit.block.data.type.Bed.Part;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -37,8 +36,7 @@ public class Queue {
 
         if (container == null) {
             forceList.remove(0);
-        }
-        else {
+        } else {
             forceList.add(container);
         }
 
@@ -91,8 +89,7 @@ public class Queue {
                 if (!block.getType().equals(type)) {
                     queueBlockBreak(user, blockState, type, blockData, null, extraData, 0);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }, block.getLocation(), ticks);
@@ -102,10 +99,9 @@ public class Queue {
         if (type == Material.SPAWNER && block instanceof CreatureSpawner) { // Mob spawner
             CreatureSpawner mobSpawner = (CreatureSpawner) block;
             extraData = Util.getSpawnerType(mobSpawner.getSpawnedType());
-        }
-        else if (type == Material.IRON_DOOR || BlockGroup.DOORS.contains(type) || type.equals(Material.SUNFLOWER) || type.equals(Material.LILAC) || type.equals(Material.TALL_GRASS) || type.equals(Material.LARGE_FERN) || type.equals(Material.ROSE_BUSH) || type.equals(Material.PEONY)) { // Double plant
+        } else if (type == Material.IRON_DOOR || BlockGroup.DOORS.contains(type) || type.equals(Material.SUNFLOWER) || type.equals(Material.LILAC) || type.equals(Material.TALL_GRASS) || type.equals(Material.LARGE_FERN) || type.equals(Material.ROSE_BUSH) || type.equals(Material.PEONY)) { // Double plant
             if (block.getBlockData() instanceof Bisected) {
-                if (((Bisected) block.getBlockData()).getHalf().equals(Half.TOP)) {
+                if (((Bisected) block.getBlockData()).getHalf().equals(Bisected.Half.TOP)) {
                     if (blockNumber == 5) {
                         return;
                     }
@@ -120,9 +116,8 @@ public class Queue {
                     }
                 }
             }
-        }
-        else if (type.name().endsWith("_BED") && block.getBlockData() instanceof Bed) {
-            if (((Bed) block.getBlockData()).getPart().equals(Part.HEAD)) {
+        } else if (type.name().endsWith("_BED") && block.getBlockData() instanceof Bed) {
+            if (((Bed) block.getBlockData()).getPart().equals(Bed.Part.HEAD)) {
                 return;
             }
         }
@@ -182,8 +177,7 @@ public class Queue {
         Scheduler.scheduleSyncDelayedTask(CoreProtect.getInstance(), () -> {
             try {
                 queueBlockPlace(user, placed.getBlock().getState(), type, replaced, null, -1, 0, blockData);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }, placed, ticks);
@@ -201,8 +195,7 @@ public class Queue {
 
                     queueBlockPlace(user, blockStateLocation, blockType, blockReplaced, forceT, forceD, forceData, blockData);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }, blockLocation.getLocation(), ticks);
@@ -215,8 +208,7 @@ public class Queue {
                 if (!block.equals(placementBlock)) {
                     queueBlockPlace(user, placementBlock.getState(), blockType, null, blockType, -1, 0, null);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }, location, ticks);
@@ -255,8 +247,7 @@ public class Queue {
     protected static void queueEntityKill(String user, Location location, List<Object> data, EntityType type) {
         int currentConsumer = Consumer.currentConsumer;
         int consumerId = Consumer.newConsumerId(currentConsumer);
-        addConsumer(currentConsumer, new Object[] { consumerId, Process.ENTITY_KILL, null, 0, null, 0, 0 });
-        Consumer.consumerObjectList.get(currentConsumer).put(consumerId, data);
+        addConsumer(currentConsumer, new Object[] { consumerId, Process.ENTITY_KILL, null, 0, null, 0, 0, null });
         queueStandardData(consumerId, currentConsumer, new String[] { user, null }, new Object[] { location.getBlock().getState(), type, null });
     }
 
@@ -348,16 +339,10 @@ public class Queue {
         int currentConsumer = Consumer.currentConsumer;
         int consumerId = Consumer.newConsumerId(currentConsumer);
         addConsumer(currentConsumer, new Object[] { consumerId, table, null, 0, null, 0, action, null });
-        Consumer.consumerObjectArrayList.get(currentConsumer).put(consumerId, list);
         queueStandardData(consumerId, currentConsumer, new String[] { user, null }, location);
     }
 
     protected static void queueSignText(String user, Location location, int action, int color, int colorSecondary, boolean frontGlowing, boolean backGlowing, boolean isWaxed, boolean isFront, String line1, String line2, String line3, String line4, String line5, String line6, String line7, String line8, int offset) {
-        /*
-        if (line1.length() == 0 && line2.length() == 0 && line3.length() == 0 && line4.length() == 0) {
-            return;
-        }
-        */
         int currentConsumer = Consumer.currentConsumer;
         int consumerId = Consumer.newConsumerId(currentConsumer);
         addConsumer(currentConsumer, new Object[] { consumerId, Process.SIGN_TEXT, null, color, null, action, offset, null });

@@ -47,31 +47,20 @@ public class CoreProtectAPI extends Queue {
         public String getActionString() {
             int actionID = Integer.parseInt(parse[7]);
             if (parse.length < 13 && Integer.parseInt(parse[6]) == SessionLookup.ID) {
-                switch (actionID) {
-                    case 0:
-                        return "logout";
-                    case 1:
-                        return "login";
-                    default:
-                        return "unknown";
-                }
+                return switch (actionID) {
+                    case 0 -> "logout";
+                    case 1 -> "login";
+                    default -> "unknown";
+                };
             }
 
-            String result = "unknown";
-            if (actionID == 0) {
-                result = "break";
-            }
-            else if (actionID == 1) {
-                result = "place";
-            }
-            else if (actionID == 2) {
-                result = "click";
-            }
-            else if (actionID == 3) {
-                result = "kill";
-            }
-
-            return result;
+            return switch (actionID) {
+                case 0 -> "break";
+                case 1 -> "place";
+                case 2 -> "click";
+                case 3 -> "kill";
+                default -> "unknown";
+            };
         }
 
         @Deprecated
@@ -103,8 +92,7 @@ public class CoreProtectAPI extends Queue {
 
             if (actionID == 3) {
                 typeName = Util.getEntityType(type).name();
-            }
-            else {
+            } else {
                 typeName = Util.getType(type).name().toLowerCase(Locale.ROOT);
                 typeName = Util.nameFilter(typeName, this.getData());
             }
@@ -156,8 +144,7 @@ public class CoreProtectAPI extends Queue {
             for (Object value : list) {
                 if (value instanceof Material || value instanceof EntityType) {
                     result.put(value, false);
-                }
-                else if (value instanceof Integer) {
+                } else if (value instanceof Integer) {
                     Material material = Util.getType((Integer) value);
                     result.put(material, false);
                 }
@@ -417,7 +404,7 @@ public class CoreProtectAPI extends Queue {
 
     public List<String[]> performRestore(int time, List<String> restrictUsers, List<String> excludeUsers, List<Object> restrictBlocks, List<Object> excludeBlocks, List<Integer> actionList, int radius, Location radiusLocation) {
         if (Config.getGlobal().API_ENABLED) {
-            return processData(time, radius, radiusLocation, parseList(restrictBlocks), parseList(excludeBlocks), restrictUsers, excludeUsers, actionList, 1, 2, -1, -1, false);
+            return processData(time, radius, radiusLocation, parseList(restrictBlocks), parseList(excludeBlocks), restrictUsers, excludeUsers, actionList, 0, 2, -1, -1, false);
         }
         return null;
     }
@@ -472,8 +459,7 @@ public class CoreProtectAPI extends Queue {
                     actionList.add(0);
                     actionList.add(1);
                     addedMaterial = true;
-                }
-                else if (argBlock instanceof EntityType && !addedEntity) {
+                } else if (argBlock instanceof EntityType && !addedEntity) {
                     actionList.add(3);
                     addedEntity = true;
                 }
@@ -526,7 +512,7 @@ public class CoreProtectAPI extends Queue {
                     int xMax = location.getBlockX() + radius;
                     int zMin = location.getBlockZ() - radius;
                     int zMax = location.getBlockZ() + radius;
-                    argRadius = new Integer[] { radius, xMin, xMax, null, null, zMin, zMax, 0 };
+                    argRadius = new Integer[]{radius, xMin, xMax, null, null, zMin, zMax, 0};
                 }
 
                 if (lookup == 1) {
@@ -536,25 +522,21 @@ public class CoreProtectAPI extends Queue {
 
                     if (useLimit) {
                         result = Lookup.performPartialLookup(statement, null, uuids, restrictUsers, restrictBlocks, excludeBlocks, excludeUsers, actionList, location, argRadius, null, startTime, endTime, offset, rowCount, restrictWorld, true);
-                    }
-                    else {
+                    } else {
                         result = Lookup.performLookup(statement, null, uuids, restrictUsers, restrictBlocks, excludeBlocks, excludeUsers, actionList, location, argRadius, startTime, endTime, restrictWorld, true);
                     }
-                }
-                else {
+                } else {
                     if (!Bukkit.isPrimaryThread()) {
                         boolean verbose = false;
                         result = Rollback.performRollbackRestore(statement, null, uuids, restrictUsers, null, restrictBlocks, excludeBlocks, excludeUsers, actionList, location, argRadius, startTime, endTime, restrictWorld, false, verbose, action, 0);
-                    }
-                    else {
+                    } else {
                         Chat.console(Phrase.build(Phrase.PRIMARY_THREAD_ERROR));
                     }
                 }
 
                 statement.close();
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -574,5 +556,3 @@ public class CoreProtectAPI extends Queue {
     public void testAPI() {
         Chat.console(Phrase.build(Phrase.API_TEST));
     }
-
-}

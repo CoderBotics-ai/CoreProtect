@@ -49,44 +49,42 @@ public class Database extends Queue {
         try {
             if (Config.getGlobal().MYSQL) {
                 statement.executeUpdate("START TRANSACTION");
-            }
-            else {
+            } else {
                 statement.executeUpdate("BEGIN TRANSACTION");
             }
-        }
-        catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public static void commitTransaction(Statement statement) throws Exception {
+    public static void commitTransaction(Statement statement) {
         int count = 0;
 
         while (true) {
             try {
                 if (Config.getGlobal().MYSQL) {
                     statement.executeUpdate("COMMIT");
-                }
-                else {
+                } else {
                     statement.executeUpdate("COMMIT TRANSACTION");
                 }
-            }
-            catch (Exception e) {
+                break; // Exit loop on successful commit
+            } catch (SQLException e) {
                 if (e.getMessage().startsWith("[SQLITE_BUSY]") && count < 30) {
-                    Thread.sleep(1000);
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt(); // Restore interrupted status
+                    }
                     count++;
-
-                    continue;
-                }
-                else {
+                } else {
                     e.printStackTrace();
+                    break; // Exit loop on failure
                 }
             }
-
-            Consumer.transacting = false;
-            Consumer.interrupt = false;
-            return;
         }
+
+        Consumer.transacting = false;
+        Consumer.interrupt = false;
     }
 
     public static void performCheckpoint(Statement statement) throws SQLException {
@@ -100,8 +98,7 @@ public class Database extends Queue {
             for (int i = 1; i <= count; i++) {
                 statement.setInt(i, value);
             }
-        }
-        catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -123,8 +120,7 @@ public class Database extends Queue {
                         ConfigHandler.forceContainer.put(user.toLowerCase(Locale.ROOT) + "." + location.getBlockX() + "." + location.getBlockY() + "." + location.getBlockZ(), forceList);
                         Queue.queueContainerBreak(user, location, type, contents);
                     }
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -132,8 +128,6 @@ public class Database extends Queue {
     }
 
     public static Connection getConnection(boolean onlyCheckTransacting) {
-        // Previously 250ms; long consumer commit time may be due to batching
-        // TODO: Investigate, potentially remove batching for SQLite connections
         return getConnection(false, false, onlyCheckTransacting, 1000);
     }
 
@@ -151,14 +145,12 @@ public class Database extends Queue {
                 try {
                     connection = ConfigHandler.hikariDataSource.getConnection();
                     ConfigHandler.databaseReachable = true;
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     ConfigHandler.databaseReachable = false;
                     Chat.sendConsoleMessage(Color.RED + "[CoreProtect] " + Phrase.build(Phrase.MYSQL_UNAVAILABLE));
                     e.printStackTrace();
                 }
-            }
-            else {
+            } else {
                 if (Consumer.transacting && onlyCheckTransacting) {
                     Consumer.interrupt = true;
                 }
@@ -166,20 +158,19 @@ public class Database extends Queue {
                 long startTime = System.nanoTime();
                 while (Consumer.isPaused && !force && (Consumer.transacting || !onlyCheckTransacting)) {
                     Thread.sleep(1);
-                    long pauseTime = (System.nanoTime() - startTime) / 1000000;
+                    long pauseTime = (System.nanoTime() - startTime) / 1_000_000;
 
                     if (pauseTime >= waitTime) {
                         return connection;
                     }
                 }
 
-                String database = "jdbc:sqlite:" + ConfigHandler.path + ConfigHandler.sqlite + "";
+                String database = "jdbc:sqlite:" + ConfigHandler.path + ConfigHandler.sqlite;
                 connection = DriverManager.getConnection(database);
 
                 ConfigHandler.databaseReachable = true;
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -192,8 +183,7 @@ public class Database extends Queue {
                 ConfigHandler.hikariDataSource.close();
                 ConfigHandler.hikariDataSource = null;
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -201,17 +191,19 @@ public class Database extends Queue {
     public static void performUpdate(Statement statement, long id, int rb, int table) {
         try {
             int rolledBack = Util.toggleRolledBack(rb, (table == 2 || table == 3 || table == 4)); // co_item, co_container, co_block
-            if (table == 1 || table == 3) {
-                statement.executeUpdate("UPDATE " + ConfigHandler.prefix + "container SET rolled_back='" + rolledBack + "' WHERE rowid='" + id + "'");
+            switch (table) {
+                case 1:
+                case 3:
+                    statement.executeUpdate("UPDATE " + ConfigHandler.prefix + "container SET rolled_back='" + rolledBack + "' WHERE rowid='" + id + "'");
+                    break;
+                case 2:
+                    statement.executeUpdate("UPDATE " + ConfigHandler.prefix + "item SET rolled_back='" + rolledBack + "' WHERE rowid='" + id + "'");
+                    break;
+                default:
+                    statement.executeUpdate("UPDATE " + ConfigHandler.prefix + "block SET rolled_back='" + rolledBack + "' WHERE rowid='" + id + "'");
+                    break;
             }
-            else if (table == 2) {
-                statement.executeUpdate("UPDATE " + ConfigHandler.prefix + "item SET rolled_back='" + rolledBack + "' WHERE rowid='" + id + "'");
-            }
-            else {
-                statement.executeUpdate("UPDATE " + ConfigHandler.prefix + "block SET rolled_back='" + rolledBack + "' WHERE rowid='" + id + "'");
-            }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -278,8 +270,7 @@ public class Database extends Queue {
                     preparedStatement = prepareStatement(connection, blockdataInsert, keys);
                     break;
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -292,16 +283,13 @@ public class Database extends Queue {
             if (keys) {
                 if (hasReturningKeys()) {
                     preparedStatement = connection.prepareStatement(query + " RETURNING rowid");
-                }
-                else {
+                } else {
                     preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
                 }
-            }
-            else {
+            } else {
                 preparedStatement = connection.prepareStatement(query);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -313,8 +301,7 @@ public class Database extends Queue {
             if (!Config.getGlobal().MYSQL) {
                 if (!Config.getGlobal().DISABLE_WAL) {
                     statement.executeUpdate("PRAGMA journal_mode=WAL;");
-                }
-                else {
+                } else {
                     statement.executeUpdate("PRAGMA journal_mode=DELETE;");
                 }
             }
@@ -332,8 +319,7 @@ public class Database extends Queue {
                 statement.executeUpdate("INSERT INTO " + prefix + "database_lock (rowid, status, time) VALUES ('1', '0', '" + unixtimestamp + "')");
                 Process.lastLockUpdate = 0;
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -386,8 +372,7 @@ public class Database extends Queue {
                     statement.close();
                     success = true;
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             if (!success) {
@@ -415,8 +400,7 @@ public class Database extends Queue {
                     String type = rs.getString("type");
                     if (type.equalsIgnoreCase("table")) {
                         tableData.add(rs.getString("name"));
-                    }
-                    else if (type.equalsIgnoreCase("index")) {
+                    } else if (type.equalsIgnoreCase("index")) {
                         indexData.add(rs.getString("name"));
                     }
                 }
@@ -567,8 +551,7 @@ public class Database extends Queue {
                     if (!indexData.contains("world_id_index")) {
                         statement.executeUpdate("CREATE INDEX IF NOT EXISTS " + attachDatabase + "world_id_index ON " + ConfigHandler.prefix + "world(id);");
                     }
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     Chat.console(Phrase.build(Phrase.DATABASE_INDEX_ERROR));
                     if (purge) {
                         e.printStackTrace();
@@ -578,11 +561,9 @@ public class Database extends Queue {
                     initializeTables(prefix, statement);
                 }
                 statement.close();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
-
 }

@@ -6,6 +6,8 @@
   <properties>
     <project.branch></project.branch>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>21</maven.compiler.source> <!-- Updated to Java 21 -->
+    <maven.compiler.target>21</maven.compiler.target> <!-- Updated to Java 21 -->
   </properties>
   <build>
     <resources>
@@ -23,10 +25,10 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
+        <version>3.10.1</version> <!-- Updated to a more recent version -->
         <configuration>
-          <source>11</source>
-          <target>11</target>
+          <source>21</source> <!-- Updated to Java 21 -->
+          <target>21</target> <!-- Updated to Java 21 -->
         </configuration>
       </plugin>
       <plugin>
@@ -115,12 +117,6 @@
     </dependencies>
   </dependencyManagement>
   <dependencies>
-    <!--
-    paper-api: io.papermc.paper
-    paper-api (<= 1.16): com.destroystokyo.paper
-    spigot-api: org.spigotmc
-    bukkit: org.bukkit
-    -->
     <dependency>
       <groupId>io.papermc.paper</groupId>
       <artifactId>paper-api</artifactId>
